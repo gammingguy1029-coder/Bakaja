@@ -137,6 +137,78 @@
     .actions { flex-direction:column; align-items:stretch; }
     .admin-form { display:grid; }
   }
+  /* Private UI only — the public blog retains its light palette. */
+  .private-screen,.private-dialog { color-scheme:dark; --ink:#f5f3f9; --muted:#aaa6b5; --green:#c8b6ff; --line:#302d37; --white:#18171d; --danger:#ffabb4; color:var(--ink); }
+  .private-screen { background:#0b0a0e; }
+  .workspace { width:min(1520px,100%); background:#111015; border-inline:1px solid var(--line); }
+  .private-screen .quiet,.private-dialog .quiet { background:#24222c; color:#f4efff; border-color:#36313f; }
+  .private-screen .quiet:hover,.private-dialog .quiet:hover { background:#332b44; }
+  .private-screen .primary,.private-dialog .primary { background:#6946cd; color:white; }
+  .private-screen .primary:hover,.private-dialog .primary:hover { background:#7a51e3; }
+  .private-screen .danger { background:#361e28; color:#ffc2ca; border-color:#573141; }
+  .private-screen :focus-visible,.private-dialog :focus-visible { outline-color:#c7acff; }
+  .private-screen input:not([type=checkbox]),.private-screen select,.private-dialog input { background:#1b1922; color:var(--ink); border-color:#413a4e; }
+  .private-screen input::placeholder,.private-dialog input::placeholder { color:#aaa1b5; }
+  .private-dialog { background:#17151e; box-shadow:0 24px 90px #000a; }
+  .private-dialog::backdrop { background:#090810bf; }
+  .private-dialog .dialog-head h2,.private-screen h2 { font-family:inherit; font-weight:730; letter-spacing:-.045em; }
+  .inbox { flex:0 0 clamp(212px,24vw,298px); display:grid; grid-template-rows:auto auto minmax(0,1fr) auto; padding:20px 14px 14px; border-right:1px solid var(--line); background:#15131c; min-width:0; }
+  .workspace.panel-open .inbox { display:none; }
+  .inbox-head { display:flex; align-items:center; justify-content:space-between; gap:7px; padding-inline:4px; }
+  .dm-kicker { text-transform:uppercase; letter-spacing:.14em; font-size:.69rem; font-weight:750; color:#bc9ffd; }
+  .inbox h2 { font-size:1.6rem; }
+  .inbox-label { color:var(--muted); margin:19px 4px 8px; font-size:.82rem; font-weight:650; }
+  .inbox-rooms { overflow:auto; padding:3px; min-height:0; margin:0; list-style:none; display:flex; flex-direction:column; gap:4px; }
+  .private-screen .inbox-item,.private-dialog .inbox-item { display:flex; align-items:center; text-align:left; gap:10px; padding:8px; border:1px solid transparent; border-radius:13px; background:transparent; color:var(--ink); width:100%; }
+  .private-screen .inbox-item:hover,.private-dialog .inbox-item:hover { background:#242133; }
+  .private-screen .inbox-item[aria-current=true],.private-dialog .inbox-item[aria-current=true] { background:#2a2140; border-color:#44365b; }
+  .inbox-item .inbox-name { overflow-wrap:anywhere; min-width:0; }
+  .inbox-foot { padding-top:10px; border-top:1px solid var(--line); }
+  .inbox-note { margin:4px 8px; color:var(--muted); font-size:.86rem; }
+  .avatar { display:inline-grid; place-items:center; width:36px; height:36px; flex:none; border-radius:50%; background:linear-gradient(150deg,#5039a5,#38275f); border:1px solid #8164ca69; color:#fff; font-size:.84rem; font-weight:750; }
+  .avatar.owner-avatar { color:#2d1d0c; background:linear-gradient(140deg,#fff0ae,#d5953e); border-color:#ffda85; box-shadow:0 0 12px #f4bb5750; }
+  .chat-top { background:#17151e; min-height:68px; padding:9px 13px; }
+  .chat-heading { flex:1; display:flex; align-items:center; min-width:0; gap:9px; }
+  .chat-heading > div { min-width:0; }
+  .chat-top h1 { line-height:1.17; letter-spacing:-.025em; }
+  .chat-context { font-size:.73rem; color:var(--muted); margin-top:2px; }
+  .icon-button { display:grid; place-items:center; width:44px; flex:none; padding:0; }
+  .chat-tools { display:flex; flex:none; gap:5px; }
+  .chat-tools .avatar { width:31px; height:31px; }
+  .messages { padding:clamp(12px,3vw,32px); background:radial-gradient(ellipse at 52% 118%,#221634 0,transparent 60%),#111015; align-items:stretch; }
+  .messages[data-state]:empty::before { content:attr(data-state); margin:auto; padding:14px; text-align:center; color:#b2aabd; }
+  .message { flex:none; align-self:flex-start; color:#f5f2fc; border-color:#35303e; background:#25222e; border-radius:17px 17px 17px 5px; }
+  .message.own { background:linear-gradient(145deg,#51328d,#362859); border-color:#7153a2; border-radius:17px 17px 5px 17px; }
+  .message p { line-height:1.45; }
+  .message-meta { gap:3px 7px; }
+  .message-meta .avatar { width:24px; height:24px; font-size:.68rem; }
+  .message-author { display:inline-flex; align-items:center; gap:5px; background:none; border:0; padding:0; color:inherit; text-align:left; min-width:0; }
+  .message-author strong { overflow-wrap:anywhere; }
+  .message-author:hover strong { text-decoration:underline; }
+  .private-screen .badge,.private-dialog .badge { color:#efebf5; background:#1f1b29; }
+  .private-screen .role-admin .badge { color:#a4ceff; }
+  .private-screen .role-mod .badge { color:#94eabb; }
+  .private-screen .role-vip .badge { color:#dec0ff; }
+  .message.owner { background:linear-gradient(145deg,#3b2816,#231b21); border-color:#bc873d; box-shadow:0 0 13px #e7ad3836; }
+  .owner .message-meta strong { color:#ffdc95; background-image:linear-gradient(95deg,#ffdc95,#ff99c1,#cbb6ff,#a0e9ec,#ffdc95); }
+  .private-screen .owner .badge,.private-dialog .owner-badge { color:#ffe7a5; background:#3b2a19; border-color:#d9a449; box-shadow:0 0 8px #edbe5b40; }
+  .owner::after { background:linear-gradient(110deg,transparent 35%,#ffdc9540 49%,transparent 63%); }
+  .composer { background:#15131c; padding:10px 12px max(10px,env(safe-area-inset-bottom)); }
+  .private-screen .composer input { border-radius:24px; padding-inline:15px; }
+  .composer .primary { border-radius:23px; }
+  .owner-pane { background:#15131c; }
+  .profile-identity { text-align:center; padding:14px 4px 8px; }
+  .profile-identity .avatar { width:78px; height:78px; font-size:2rem; }
+  .profile-identity h3 { margin:10px 0 3px; font-size:1.6rem; letter-spacing:-.04em; }
+  .profile-banner { border-radius:13px; padding:13px; background:#23202e; color:#dcd5e8; margin-top:13px; }
+  .profile-banner.owner-banner { border:1px solid #896336; background:#2f241b; color:#ffdda1; }
+  @media (max-width:900px) { .inbox { display:none; } }
+  @media (max-width:540px) {
+    .chat-top { gap:5px; padding-inline:7px; }
+    .chat-heading > .avatar { display:none; }
+    .chat-context { font-size:.69rem; }
+    .chat-tools { gap:3px; }
+  }
 </style>
 </head>
 <body>
@@ -172,7 +244,7 @@
 </div>
 <div class="banner" id="wake" role="status" hidden>Waking up the server, please wait...</div>
 <div class="sr" id="announcement" role="status"></div>
-<dialog id="auth-dialog" aria-labelledby="auth-title">
+<dialog class="private-dialog" id="auth-dialog" aria-labelledby="auth-title">
   <div class="dialog-head"><h2 id="auth-title">Login</h2><button type="button" class="quiet" data-close="auth-dialog" aria-label="Close">×</button></div>
   <form id="auth-form" class="stack" novalidate>
     <label class="field">Username<input id="login-user" name="username" maxlength="20" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="send" required></label>
@@ -182,7 +254,7 @@
   </form>
   <p id="auth-status" class="status error" role="status"></p>
 </dialog>
-<dialog id="rooms-dialog" aria-labelledby="rooms-title">
+<dialog class="private-dialog" id="rooms-dialog" aria-labelledby="rooms-title">
   <div class="dialog-head"><h2 id="rooms-title">Your rooms</h2><button type="button" class="quiet" data-close="rooms-dialog" aria-label="Close">×</button></div>
   <ul id="room-items" class="room-items"></ul>
   <form id="room-join" class="inline" novalidate>
@@ -192,9 +264,23 @@
   <p id="rooms-status" class="status" role="status"></p>
 </dialog>
 <section id="private" class="private-screen" aria-label="Private chat" hidden>
-  <div class="workspace">
+  <div class="workspace" id="workspace">
+    <aside class="inbox" aria-labelledby="inbox-title">
+      <div class="inbox-head"><div><p class="dm-kicker">Private space</p><h2 id="inbox-title">Messages</h2></div><button type="button" class="quiet icon-button" id="inbox-join" aria-label="Join with a code">＋</button></div>
+      <p class="inbox-label">Your rooms</p>
+      <ul class="inbox-rooms" id="inbox-rooms"></ul>
+      <div class="inbox-foot" id="inbox-account"></div>
+    </aside>
     <div class="chat" id="chat">
-      <header class="chat-top"><button type="button" id="back" class="quiet">← Back</button><h1 id="chat-title">Chat</h1><button type="button" id="show-panel" class="quiet" hidden>Admin Panel</button></header>
+      <header class="chat-top">
+        <button type="button" id="back" class="quiet icon-button" aria-label="Back to blog"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>
+        <div class="chat-heading"><span class="avatar" id="room-avatar" aria-hidden="true">#</span><div><h1 id="chat-title">Chat</h1><p class="chat-context">Private room</p></div></div>
+        <div class="chat-tools">
+          <button type="button" id="chat-rooms" class="quiet icon-button" aria-label="Your rooms" title="Your rooms"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-8.5 8.5 9 9 0 0 1-3.9-.9L4 20l.9-4.6a9 9 0 0 1-.9-3.9A8.4 8.4 0 0 1 12.5 3 8.4 8.4 0 0 1 21 11.5Z"/><path d="M9 12h7"/></svg></button>
+          <button type="button" id="show-panel" class="quiet icon-button" aria-label="Admin Panel" title="Admin Panel" hidden><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 6 5 4 4-6 4 6 5-4-2 11H5L3 6zm3 14h12"/></svg></button>
+          <button type="button" id="my-profile" class="quiet icon-button" aria-label="Your profile" title="Your profile"></button>
+        </div>
+      </header>
       <p id="chat-status" class="status" role="status"></p>
       <div class="messages" id="messages" role="log" aria-label="Messages" tabindex="0"></div>
       <form class="inline composer" id="chat-form">
@@ -223,6 +309,11 @@
     </aside>
   </div>
 </section>
+<dialog class="private-dialog" id="profile-dialog" aria-labelledby="profile-title">
+  <div class="dialog-head"><h2 id="profile-title">Profile</h2><button type="button" class="quiet" data-close="profile-dialog" aria-label="Close profile">×</button></div>
+  <div class="profile-identity" id="profile-identity"></div>
+  <p class="profile-banner" id="profile-banner"></p>
+</dialog>
 <script>
 'use strict';
 const $ = id => document.getElementById(id);
@@ -237,8 +328,8 @@ const posts = [
 const blogCards = new Map();
 let user = null, savedCommand = null, authMode = 'login', room = null, pollTimer, pollRequest;
 let wakeCount = 0, pollWaiting = false, panelAllowed = false;
-let roomRequestId = 0, roomsRequestId = 0;
-const authDialog = $('auth-dialog'), roomsDialog = $('rooms-dialog');
+let roomRequestId = 0, roomsRequestId = 0, inboxRequestId = 0;
+const authDialog = $('auth-dialog'), roomsDialog = $('rooms-dialog'), profileDialog = $('profile-dialog');
 const list = $('messages');
 const compact = matchMedia('(max-width:900px)');
 const msgTime = new Intl.DateTimeFormat(undefined,{ hour:'2-digit', minute:'2-digit', hourCycle:'h23' });
@@ -411,6 +502,7 @@ function authView(mode) {
 function openAuth(command, target) {
   savedCommand = { command, target };
   if (roomsDialog.open) roomsDialog.close();
+  if (profileDialog.open) profileDialog.close();
   $('auth-form').reset(); authView('login');
   if (!authDialog.open) authDialog.showModal();
 }
@@ -443,6 +535,57 @@ async function runCommand(command, target) {
     status(target,error.message,true);
   }
 }
+function avatar(name, crown = false) {
+  const words = name.trim().split(/\s+/);
+  const initials = words.slice(0,2).map(word => Array.from(word)[0] || '').join('').toUpperCase();
+  const node = element('span',`avatar${crown ? ' owner-avatar' : ''}`,crown ? '♛' : initials || '#');
+  node.setAttribute('aria-hidden','true');
+  return node;
+}
+function showProfile(account) {
+  if (!account || $('private').hidden) return;
+  const owner = account.role === 'Owner';
+  const self = account.username === user?.username;
+  const badge = badgeFor(account.role,account.color);
+  if (owner) badge.classList.add('owner-badge');
+  $('profile-title').textContent = self ? 'Your profile' : 'Chat profile';
+  $('profile-identity').replaceChildren(avatar(account.username,owner),element('h3',null,`@${account.username}`),badge);
+  const banner = $('profile-banner');
+  banner.classList.toggle('owner-banner',owner);
+  banner.textContent = owner ? 'ShadowBlog Owner · Manages private rooms, invite codes, and access.' : self ? 'This is how your account appears to others in chat.' : 'Private chat member';
+  if (!profileDialog.open) profileDialog.showModal();
+}
+function roomItem(entry, target) {
+  const row = element('li');
+  const control = button('',() => void runCommand({ name:'join', code:entry.code },target),'inbox-item');
+  control.append(avatar(entry.room),element('span','inbox-name',entry.room));
+  if (room?.code === entry.code) control.setAttribute('aria-current','true');
+  row.append(control);
+  return row;
+}
+async function refreshInbox() {
+  const request = ++inboxRequestId;
+  const currentUser = user;
+  const nodes = $('inbox-rooms');
+  if (compact.matches || $('private').hidden || !currentUser || !$('owner-pane').hidden) return;
+  nodes.replaceChildren(element('li','inbox-note','Loading rooms…'));
+  try {
+    const { rooms } = await api('/rooms');
+    if (request !== inboxRequestId || user !== currentUser) return;
+    nodes.replaceChildren(...(rooms.length ? rooms.map(entry => roomItem(entry,$('chat-status'))) : [element('li','inbox-note','No rooms joined yet.')]));
+  } catch {
+    if (request === inboxRequestId) nodes.replaceChildren(element('li','inbox-note','Could not load rooms. Use + to try again.'));
+  }
+}
+function renderAccount() {
+  if (!user) return;
+  $('my-profile').replaceChildren(avatar(user.username,user.role === 'Owner'));
+  const control = button('',() => showProfile(user),'inbox-item');
+  const details = element('div','inbox-name');
+  details.append(element('strong',null,`@${user.username}`),element('p','chat-context',user.role === 'Owner' ? 'Owner profile' : 'Your profile'));
+  control.append(avatar(user.username,user.role === 'Owner'),details);
+  $('inbox-account').replaceChildren(control);
+}
 async function openRooms() {
   const request = ++roomsRequestId;
   const nodes = $('room-items'); nodes.replaceChildren();
@@ -451,11 +594,7 @@ async function openRooms() {
   try {
     const { rooms } = await readWithBackoff('/rooms');
     if (request !== roomsRequestId || !roomsDialog.open) return;
-    for (const entry of rooms) {
-      const row = element('li');
-      row.append(button(entry.room,() => runCommand({ name:'join', code:entry.code },$('rooms-status'))));
-      nodes.append(row);
-    }
+    for (const entry of rooms) nodes.append(roomItem(entry,$('rooms-status')));
     status('rooms-status',rooms.length ? '' : 'No rooms joined yet. Enter a code to join.');
   } catch (error) {
     if (error.status === 401) throw error;
@@ -477,16 +616,17 @@ function showPrivate() {
   $('blog').inert = true; document.body.classList.add('private'); $('private').hidden = false;
   resizePrivate(); syncPane();
 }
-function setPanel(visible) { $('owner-pane').hidden = !visible; syncPane(); }
+function setPanel(visible) { $('owner-pane').hidden = !visible; $('workspace').classList.toggle('panel-open',visible); syncPane(); }
 function stopPoll() {
   clearTimeout(pollTimer); pollTimer = undefined;
   pollRequest?.abort(); pollRequest = undefined;
   pollWaiting = false; syncWake();
 }
 function leavePrivate() {
-  ++roomRequestId; stopPoll(); room = null; panelAllowed = false; setPanel(false);
+  ++roomRequestId; ++inboxRequestId; stopPoll(); room = null; panelAllowed = false; setPanel(false);
   $('private').hidden = true; $('blog').inert = false; document.body.classList.remove('private');
-  $('chat-input').value = ''; list.replaceChildren();
+  $('chat-input').value = ''; list.replaceChildren(); $('inbox-rooms').replaceChildren(); $('inbox-account').replaceChildren();
+  if (profileDialog.open) profileDialog.close();
   const selected = $('navigation').querySelector('[aria-current=page]');
   (selected && selected.getClientRects().length ? selected : document.querySelector('.logo')).focus({ preventScroll:true });
 }
@@ -495,10 +635,11 @@ function enterChat(entry, allowPanel = false) {
   room = entry ? { ...entry, lastId:null, ids:new Map(), pending:new Map() } : null;
   panelAllowed = allowPanel; setPanel(allowPanel);
   $('chat-title').textContent = entry?.room || 'Admin Chat';
+  $('room-avatar').textContent = avatar(entry?.room || 'Admin Chat').textContent;
   $('chat-input').value = ''; $('chat-form').hidden = !entry;
-  list.replaceChildren(); status('chat-status');
+  list.replaceChildren(); list.dataset.state = entry ? 'Loading messages…' : 'This room is unavailable.'; status('chat-status');
   if (roomsDialog.open) roomsDialog.close();
-  showPrivate();
+  showPrivate(); renderAccount(); void refreshInbox();
   (allowPanel ? $('close-panel') : $('back')).focus({ preventScroll:true });
   if (room) void poll(room);
 }
@@ -507,7 +648,11 @@ async function openRoom(code) {
   if (!/^[A-Z0-9]{1,12}$/.test(code)) throw new Error(code ? 'This code is invalid / expired. Ask admin to Validate it.' : 'Enter a room code, for example /join CODE.');
   const request = ++roomRequestId;
   const result = await readWithBackoff(`/codes/${encodeURIComponent(code)}/check`);
-  if (request === roomRequestId && user) enterChat(result.room);
+  if (request !== roomRequestId || !user) return;
+  if (room?.code === code) {
+    if (roomsDialog.open) roomsDialog.close();
+    if (!$('owner-pane').hidden) { setPanel(false); $('back').focus({ preventScroll:true }); void refreshInbox(); }
+  } else enterChat(result.room);
 }
 async function openAdmin() {
   const request = ++roomRequestId;
@@ -533,7 +678,10 @@ function messageNode(message, own, pending = false) {
   const meta = element('div','message-meta');
   const time = element('time',null,msgTime.format(new Date(message.created_at)));
   time.dateTime = message.created_at;
-  meta.append(element('strong',null,`${message.role === 'Owner' ? '👑 ' : ''}${message.username}`),badgeFor(message.role,message.color),time);
+  const author = button('',() => showProfile(message),'message-author');
+  author.setAttribute('aria-label',`Profile: ${message.username}`);
+  author.append(avatar(message.username,message.role === 'Owner'),element('strong',null,`${message.role === 'Owner' ? '👑 ' : ''}${message.username}`));
+  meta.append(author,badgeFor(message.role,message.color),time);
   if (message.role === 'Owner') {
     const sparkle = element('span','sparkle','✨'); sparkle.setAttribute('aria-hidden','true'); meta.append(sparkle);
   }
@@ -575,11 +723,13 @@ async function poll(current) {
     if (messages.length) current.lastId = messages[messages.length - 1].id;
     else if (current.lastId === null) current.lastId = 0;
     catchUp(own || (added && near));
+    list.dataset.state = 'No messages yet. Say hello!';
     pollWaiting = false; syncWake();
     status('chat-status');
   } catch (error) {
     if (room !== current || controller.signal.aborted) return;
     wait = 10000;
+    list.dataset.state = error.status >= 500 ? 'Reconnecting…' : 'Messages are unavailable.';
     pollWaiting = error.status >= 500; syncWake();
     status('chat-status',pollWaiting ? '' : error.message,true);
   } finally {
@@ -702,9 +852,11 @@ $('room-join').addEventListener('submit',event => {
   void runCommand({ name:'join',code },$('rooms-status'));
 });
 $('back').addEventListener('click',leavePrivate);
+$('my-profile').addEventListener('click',() => showProfile(user));
+for (const id of ['chat-rooms','inbox-join']) $(id).addEventListener('click',() => void runCommand({ name:'rooms' },$('chat-status')));
 $('show-panel').addEventListener('click',() => { setPanel(true); $('close-panel').focus(); void loadPanel(); });
-$('close-panel').addEventListener('click',() => { setPanel(false); $('back').focus({ preventScroll:true }); });
-compact.addEventListener('change',syncPane);
+$('close-panel').addEventListener('click',() => { setPanel(false); $('back').focus({ preventScroll:true }); void refreshInbox(); });
+compact.addEventListener('change',() => { syncPane(); void refreshInbox(); });
 window.visualViewport?.addEventListener('resize',resizePrivate);
 window.visualViewport?.addEventListener('scroll',resizePrivate);
 document.addEventListener('visibilitychange',() => { if (document.hidden) stopPoll(); else if (room) void poll(room); });
