@@ -1,0 +1,896 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content">
+<meta name="theme-color" content="#f8f7f2">
+<title>ShadowBlog — The study desk</title>
+<style>
+  :root { color-scheme: light; --paper:#f8f7f2; --white:#fff; --ink:#202e26; --muted:#536158; --green:#23543d; --line:#dddfd5; --soft:#e9efe5; --danger:#912f32; --shadow:0 20px 70px #233e2522; }
+  *, *::before, *::after { box-sizing:border-box; }
+  [hidden] { display:none !important; }
+  body { margin:0; background:var(--paper); color:var(--ink); font:16px/1.55 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+  body.private { overflow:hidden; }
+  button,input,select { font:inherit; }
+  button { min-height:44px; cursor:pointer; }
+  button:disabled { cursor:wait; opacity:.65; }
+  input:not([type=checkbox]),select { width:100%; min-width:0; min-height:44px; padding:9px 12px; background:var(--white); border:1px solid #b8c2b8; border-radius:9px; color:var(--ink); }
+  input[type=color] { padding:5px; }
+  :focus-visible { outline:2px solid #236449; outline-offset:3px; }
+  h1,h2,h3,p { margin:0; }
+  p,h1,h2,h3,td,summary,.message { overflow-wrap:anywhere; }
+  .wrap { width:min(1160px,calc(100% - 64px)); margin-inline:auto; }
+  .top { background:#fcfbf8; border-bottom:1px solid var(--line); }
+  .top .wrap { min-height:72px; display:flex; align-items:center; justify-content:space-between; gap:16px; position:relative; }
+  .logo { color:var(--ink); text-decoration:none; font-size:21px; font-weight:760; letter-spacing:-.045em; display:inline-flex; align-items:center; gap:10px; min-height:44px; }
+  .mark { display:grid; place-items:center; width:34px; height:34px; background:var(--green); color:#fff; border-radius:9px; flex:none; }
+  .nav { display:flex; align-items:center; gap:8px; }
+  .nav a,.nav-toggle { display:flex; align-items:center; min-height:44px; padding:8px 14px; color:var(--muted); border:0; border-radius:8px; text-decoration:none; font-weight:620; background:transparent; }
+  .nav a:hover,.nav a[aria-current=page],.nav-toggle:hover { background:var(--soft); color:var(--green); }
+  .nav-toggle { display:none; }
+  .hero { margin-top:34px; min-height:315px; display:grid; grid-template-columns:minmax(0,1.3fr) minmax(0,.8fr); align-items:center; gap:20px; padding:clamp(24px,5vw,66px); border:1px solid #d8e1d3; border-radius:24px; background:linear-gradient(115deg,#ecf1e7,#e4ece0); }
+  .eyebrow { color:var(--green); font-size:.735rem; font-weight:780; letter-spacing:.15em; text-transform:uppercase; }
+  .hero h1 { font:500 clamp(2.45rem,5.6vw,4.8rem)/1.04 Georgia,serif; letter-spacing:-.05em; margin:13px 0 15px; }
+  .hero p:last-child { max-width:48ch; color:#43564a; }
+  .hero-art { width:100%; max-width:340px; justify-self:end; height:auto; }
+  .section-head { margin:37px 0 17px; display:flex; gap:10px 20px; align-items:end; justify-content:space-between; flex-wrap:wrap; }
+  .section-head h2 { font:500 clamp(1.9rem,3vw,2.55rem)/1.1 Georgia,serif; letter-spacing:-.035em; margin-top:5px; }
+  .count { color:var(--muted); font-size:.875rem; }
+  .posts { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
+  .card { background:var(--white); border:1px solid var(--line); border-radius:17px; padding:clamp(17px,2.25vw,27px); display:flex; flex-direction:column; gap:10px; min-width:0; }
+  .post-meta { display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:.78rem; color:var(--muted); }
+  .tag { padding:4px 10px; background:var(--soft); color:var(--green); border-radius:999px; font-weight:680; }
+  .card h3 { font:500 clamp(1.45rem,2.5vw,1.85rem)/1.17 Georgia,serif; letter-spacing:-.025em; }
+  .card > p { color:#46534b; margin-bottom:3px; }
+  .comment-area { margin-top:auto; padding-top:4px; }
+  .comment-area summary { cursor:pointer; min-height:44px; line-height:44px; color:var(--green); font-weight:650; font-size:.9rem; }
+  .comments { display:grid; gap:5px; max-height:240px; overflow:auto; margin-bottom:8px; font-size:.91rem; }
+  .comment { background:#f6f7f3; padding:8px 10px; border-radius:8px; overflow-wrap:anywhere; }
+  .comment time { color:var(--muted); font-size:.8rem; margin-left:8px; }
+  .inline { display:flex; align-items:center; gap:8px; min-width:0; }
+  .inline input { flex:1 1 0; }
+  .primary,.quiet,.danger { border:1px solid transparent; border-radius:9px; padding:8px 14px; font-weight:680; }
+  .primary { color:white; background:var(--green); }
+  .primary:hover { background:#173c2a; }
+  .quiet { color:var(--green); background:#eff2ec; border-color:#dce3d9; }
+  .quiet:hover { background:#e2eadf; }
+  .danger { color:var(--danger); background:#fff1ef; border-color:#f1d5d2; }
+  .banner { z-index:5; position:fixed; bottom:12px; left:50%; transform:translateX(-50%); width:max-content; max-width:calc(100% - 24px); background:#fff6d9; color:#523e18; border:1px solid #ead9a5; border-radius:11px; padding:10px 15px; box-shadow:var(--shadow); }
+  body.private .banner { top:8px; bottom:auto; pointer-events:none; }
+  .notice,.status { color:var(--muted); font-size:.88rem; }
+  .status:not(:empty) { margin-top:7px; }
+  .error { color:var(--danger); }
+  footer { text-align:center; margin-top:43px; border-top:1px solid var(--line); padding:22px 12px; color:var(--muted); font-size:.9rem; }
+  .sr { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; border:0; }
+  dialog { width:min(440px,calc(100% - 28px)); max-height:calc(100dvh - 28px); overflow:auto; border:1px solid var(--line); border-radius:19px; padding:23px; color:var(--ink); background:var(--white); box-shadow:var(--shadow); }
+  dialog::backdrop { background:#20302670; }
+  .dialog-head { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:12px; }
+  .dialog-head h2 { font:500 1.85rem/1.1 Georgia,serif; }
+  .stack { display:grid; gap:11px; }
+  .field { display:grid; gap:4px; font-weight:650; min-width:0; }
+  .room-items { list-style:none; display:grid; gap:7px; padding:0; margin:0 0 10px; }
+  .room-items button { width:100%; text-align:left; overflow-wrap:anywhere; }
+  .private-screen { position:fixed; inset:var(--vp-top,0px) 0 auto; height:100dvh; height:var(--vp-height,100dvh); z-index:2; background:#eff2ec; display:flex; justify-content:center; }
+  .workspace { display:flex; width:min(1350px,100%); height:100%; min-width:0; background:var(--white); }
+  .chat { flex:1 1 0; display:grid; grid-template-rows:auto auto minmax(0,1fr) auto; min-width:0; min-height:0; }
+  .chat-top { display:flex; gap:10px; align-items:center; padding:10px 13px; border-bottom:1px solid var(--line); background:#fbfcf9; }
+  .chat-top h1 { font-size:clamp(1rem,3vw,1.45rem); flex:1; min-width:0; }
+  .chat .status:not(:empty) { padding:0 12px 5px; }
+  .messages { overflow:auto; overflow-anchor:none; overscroll-behavior:contain; padding:14px; display:flex; flex-direction:column; align-items:flex-start; gap:10px; min-width:0; }
+  .message { position:relative; isolation:isolate; border:1px solid #dce5dd; background:#f3f6f0; padding:8px 11px; border-radius:12px; max-width:min(100%,68ch); }
+  .message.own { align-self:flex-end; background:#e9f2e9; }
+  .message-meta { display:flex; align-items:center; flex-wrap:wrap; gap:4px 8px; margin-bottom:3px; font-size:.82rem; }
+  .message time { color:var(--muted); }
+  .message p { white-space:pre-wrap; }
+  .badge { border:1px solid var(--role-color); border-radius:999px; padding:1px 7px; background:white; font-size:.73rem; font-weight:750; color:#283029; box-shadow:inset 3px 0 var(--role-color); }
+  .role-admin .badge { color:#15458f; box-shadow:0 0 8px #3076e45c; }
+  .role-mod .badge { color:#12633c; }
+  .role-vip .badge { color:#68378d; }
+  .role-member .badge { color:#555d6d; }
+  .message.owner { background:linear-gradient(125deg,#fff4d9,#fffcf3); border-color:#c68b24; box-shadow:0 0 12px #f3b94766; overflow:hidden; }
+  .owner .message-meta strong { color:#985417; background:linear-gradient(95deg,#935515,#a63854,#583ca3,#21616e,#935515); background-size:230% 100%; background-clip:text; -webkit-background-clip:text; -webkit-text-fill-color:transparent; text-shadow:0 0 12px #df9f4e4f; }
+  .owner .badge { color:#764208; background:#fff4cd; box-shadow:0 0 8px #edbe5b; }
+  .owner::after { content:""; position:absolute; z-index:-1; inset:0; transform:translateX(-105%); background:linear-gradient(110deg,transparent 35%,#fff 49%,transparent 63%); pointer-events:none; }
+  .sparkle { font-size:.8rem; }
+  .composer { border-top:1px solid var(--line); background:#fbfcf9; padding:9px 12px max(9px,env(safe-area-inset-bottom)); }
+  .owner-pane { flex:0 1 52%; min-width:0; overflow:auto; overscroll-behavior:contain; border-left:1px solid var(--line); padding:15px; }
+  .owner-pane h3 { margin:15px 0 7px; }
+  .pane-head { display:flex; justify-content:space-between; align-items:center; gap:8px; }
+  .pane-head h2 { font:500 1.7rem/1.1 Georgia,serif; }
+  .actions { display:flex; flex-wrap:wrap; gap:5px; }
+  .actions button { padding-inline:8px; }
+  table { width:100%; border-collapse:collapse; table-layout:fixed; font-size:.87rem; }
+  th,td { padding:6px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+  .code-table th:last-child { width:42%; }
+  .user-table th:last-child { width:49%; }
+  .role-list { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+  @media (prefers-reduced-motion:no-preference) {
+    .owner .message-meta strong { animation:rainbow 7s linear infinite; }
+    .owner .badge,.owner .sparkle { animation:pulse 2.6s ease-in-out infinite; }
+    .owner::after { animation:shine 7s ease-in-out infinite; }
+    @keyframes rainbow { to { background-position:230% 0; } }
+    @keyframes pulse { 50% { filter:brightness(1.25); opacity:.78; } }
+    @keyframes shine { 65% { transform:translateX(-105%); } 92%,100% { transform:translateX(105%); } }
+  }
+  @media (max-width:1024px) {
+    .nav-toggle { display:flex; align-items:center; justify-content:center; width:44px; padding:0; }
+    .nav { display:none; position:absolute; z-index:1; top:calc(100% - 3px); right:0; width:min(240px,100%); padding:8px; flex-direction:column; align-items:stretch; border:1px solid var(--line); background:var(--white); border-radius:11px; box-shadow:var(--shadow); }
+    .nav.open { display:flex; }
+  }
+  @media (max-width:900px) {
+    .workspace { position:relative; }
+    .owner-pane { position:absolute; inset:0; border:0; background:white; }
+  }
+  @media (max-width:700px) {
+    .wrap { width:calc(100% - 32px); }
+    .top .wrap { min-height:62px; }
+    .hero { min-height:0; margin-top:19px; gap:9px; grid-template-columns:minmax(0,1fr); border-radius:17px; }
+    .hero-art { display:none; }
+    .section-head { margin-top:25px; }
+    .posts { grid-template-columns:minmax(0,1fr); gap:12px; }
+    dialog { width:100%; max-width:none; height:100dvh; max-height:none; margin:0; border:0; border-radius:0; padding:18px; }
+    table,tbody,tr,td { display:block; }
+    thead { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }
+    tr { border:1px solid var(--line); border-radius:9px; padding:7px; margin:7px 0; }
+    td { border:none; padding:2px 5px; }
+    td::before { content:attr(data-label) ": "; font-weight:700; }
+    .actions { flex-direction:column; align-items:stretch; }
+    .admin-form { display:grid; }
+  }
+  /* Private UI only — the public blog retains its light palette. */
+  .private-screen,.private-dialog { color-scheme:dark; --ink:#f5f3f9; --muted:#aaa6b5; --green:#c8b6ff; --line:#302d37; --white:#18171d; --danger:#ffabb4; color:var(--ink); }
+  .private-screen { background:#0b0a0e; }
+  .workspace { width:min(1520px,100%); background:#111015; border-inline:1px solid var(--line); }
+  .private-screen .quiet,.private-dialog .quiet { background:#24222c; color:#f4efff; border-color:#36313f; }
+  .private-screen .quiet:hover,.private-dialog .quiet:hover { background:#332b44; }
+  .private-screen .primary,.private-dialog .primary { background:#6946cd; color:white; }
+  .private-screen .primary:hover,.private-dialog .primary:hover { background:#7a51e3; }
+  .private-screen .danger { background:#361e28; color:#ffc2ca; border-color:#573141; }
+  .private-screen :focus-visible,.private-dialog :focus-visible { outline-color:#c7acff; }
+  .private-screen input:not([type=checkbox]),.private-screen select,.private-dialog input { background:#1b1922; color:var(--ink); border-color:#413a4e; }
+  .private-screen input::placeholder,.private-dialog input::placeholder { color:#aaa1b5; }
+  .private-dialog { background:#17151e; box-shadow:0 24px 90px #000a; }
+  .private-dialog::backdrop { background:#090810bf; }
+  .private-dialog .dialog-head h2,.private-screen h2 { font-family:inherit; font-weight:730; letter-spacing:-.045em; }
+  .inbox { flex:0 0 clamp(212px,24vw,298px); display:grid; grid-template-rows:auto auto minmax(0,1fr) auto; padding:20px 14px 14px; border-right:1px solid var(--line); background:#15131c; min-width:0; }
+  .workspace.panel-open .inbox { display:none; }
+  .inbox-head { display:flex; align-items:center; justify-content:space-between; gap:7px; padding-inline:4px; }
+  .dm-kicker { text-transform:uppercase; letter-spacing:.14em; font-size:.69rem; font-weight:750; color:#bc9ffd; }
+  .inbox h2 { font-size:1.6rem; }
+  .inbox-label { color:var(--muted); margin:19px 4px 8px; font-size:.82rem; font-weight:650; }
+  .inbox-rooms { overflow:auto; padding:3px; min-height:0; margin:0; list-style:none; display:flex; flex-direction:column; gap:4px; }
+  .private-screen .inbox-item,.private-dialog .inbox-item { display:flex; align-items:center; text-align:left; gap:10px; padding:8px; border:1px solid transparent; border-radius:13px; background:transparent; color:var(--ink); width:100%; }
+  .private-screen .inbox-item:hover,.private-dialog .inbox-item:hover { background:#242133; }
+  .private-screen .inbox-item[aria-current=true],.private-dialog .inbox-item[aria-current=true] { background:#2a2140; border-color:#44365b; }
+  .inbox-item .inbox-name { overflow-wrap:anywhere; min-width:0; }
+  .inbox-foot { padding-top:10px; border-top:1px solid var(--line); }
+  .inbox-note { margin:4px 8px; color:var(--muted); font-size:.86rem; }
+  .avatar { display:inline-grid; place-items:center; width:36px; height:36px; flex:none; border-radius:50%; background:linear-gradient(150deg,#5039a5,#38275f); border:1px solid #8164ca69; color:#fff; font-size:.84rem; font-weight:750; }
+  .avatar.owner-avatar { color:#2d1d0c; background:linear-gradient(140deg,#fff0ae,#d5953e); border-color:#ffda85; box-shadow:0 0 12px #f4bb5750; }
+  .chat-top { background:#17151e; min-height:68px; padding:9px 13px; }
+  .chat-heading { flex:1; display:flex; align-items:center; min-width:0; gap:9px; }
+  .chat-heading > div { min-width:0; }
+  .chat-top h1 { line-height:1.17; letter-spacing:-.025em; }
+  .chat-context { font-size:.73rem; color:var(--muted); margin-top:2px; }
+  .icon-button { display:grid; place-items:center; width:44px; flex:none; padding:0; }
+  .chat-tools { display:flex; flex:none; gap:5px; }
+  .chat-tools .avatar { width:31px; height:31px; }
+  .messages { padding:clamp(12px,3vw,32px); background:radial-gradient(ellipse at 52% 118%,#221634 0,transparent 60%),#111015; align-items:stretch; }
+  .messages[data-state]:empty::before { content:attr(data-state); margin:auto; padding:14px; text-align:center; color:#b2aabd; }
+  .message { flex:none; align-self:flex-start; color:#f5f2fc; border-color:#35303e; background:#25222e; border-radius:17px 17px 17px 5px; }
+  .message.own { background:linear-gradient(145deg,#51328d,#362859); border-color:#7153a2; border-radius:17px 17px 5px 17px; }
+  .message p { line-height:1.45; }
+  .message-meta { gap:3px 7px; }
+  .message-meta .avatar { width:24px; height:24px; font-size:.68rem; }
+  .message-author { display:inline-flex; align-items:center; gap:5px; background:none; border:0; padding:0; color:inherit; text-align:left; min-width:0; }
+  .message-author strong { overflow-wrap:anywhere; }
+  .message-author:hover strong { text-decoration:underline; }
+  .private-screen .badge,.private-dialog .badge { color:#efebf5; background:#1f1b29; }
+  .private-screen .role-admin .badge { color:#a4ceff; }
+  .private-screen .role-mod .badge { color:#94eabb; }
+  .private-screen .role-vip .badge { color:#dec0ff; }
+  .message.owner { background:linear-gradient(145deg,#3b2816,#231b21); border-color:#bc873d; box-shadow:0 0 13px #e7ad3836; }
+  .owner .message-meta strong { color:#ffdc95; background-image:linear-gradient(95deg,#ffdc95,#ff99c1,#cbb6ff,#a0e9ec,#ffdc95); }
+  .private-screen .owner .badge,.private-dialog .owner-badge { color:#ffe7a5; background:#3b2a19; border-color:#d9a449; box-shadow:0 0 8px #edbe5b40; }
+  .owner::after { background:linear-gradient(110deg,transparent 35%,#ffdc9540 49%,transparent 63%); }
+  .composer { background:#15131c; padding:10px 12px max(10px,env(safe-area-inset-bottom)); }
+  .private-screen .composer input { border-radius:24px; padding-inline:15px; }
+  .composer .primary { border-radius:23px; }
+  .owner-pane { background:#15131c; }
+  .profile-identity { text-align:center; padding:14px 4px 8px; }
+  .profile-identity .avatar { width:78px; height:78px; font-size:2rem; }
+  .profile-identity h3 { margin:10px 0 3px; font-size:1.6rem; letter-spacing:-.04em; }
+  .profile-banner { border-radius:13px; padding:13px; background:#23202e; color:#dcd5e8; margin-top:13px; }
+  .profile-banner.owner-banner { border:1px solid #896336; background:#2f241b; color:#ffdda1; }
+  @media (max-width:900px) { .inbox { display:none; } }
+  @media (max-width:540px) {
+    .chat-top { gap:5px; padding-inline:7px; }
+    .chat-heading > .avatar { display:none; }
+    .chat-context { font-size:.69rem; }
+    .chat-tools { gap:3px; }
+  }
+</style>
+</head>
+<body>
+<div id="blog">
+  <header class="top">
+    <div class="wrap">
+      <a class="logo" href="#home" aria-label="ShadowBlog home"><span class="mark" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6c-3-2-6-2-9-1v14c3-1 6-1 9 1 3-2 6-2 9-1V5c-3-1-6-1-9 1zm0 0v14M6 9l3 1m6 0 3-1"/></svg></span>ShadowBlog</a>
+      <button class="nav-toggle" id="menu-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false" aria-controls="navigation"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+      <nav class="nav" id="navigation" aria-label="Main navigation">
+        <a href="#home">Home</a><a href="#notes">Notes</a><a href="#study-tips">Study Tips</a><a href="#about">About</a>
+      </nav>
+    </div>
+  </header>
+  <main class="wrap">
+    <section class="hero" aria-labelledby="hero-title">
+      <div><p class="eyebrow" id="hero-label">The study desk</p><h1 id="hero-title">Make room to learn.</h1><p id="hero-text">Practical notes, better study habits, and small ways to make hard subjects feel a little more manageable.</p></div>
+      <svg class="hero-art" viewBox="0 0 340 230" fill="none" aria-hidden="true">
+        <defs><pattern id="dots" width="15" height="15" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1" fill="#6e9379" opacity=".5"/></pattern></defs>
+        <circle cx="177" cy="113" r="103" fill="#dbe7d8"/><circle cx="177" cy="113" r="102" fill="url(#dots)"/>
+        <path d="M63 171q55-22 113 11 54-33 111-15l-7 18q-51-13-103 13-59-28-111-11z" fill="#266044"/>
+        <path d="M68 161l14-86q44-16 94 18 50-35 96-18l11 86q-55-18-107 17-54-34-108-17z" fill="#fcfaf1" stroke="#3b644d" stroke-width="2"/>
+        <path d="M176 93v86M91 94q32-5 68 14m-71 0q34-3 70 15m-72 0q36-2 70 14m-72 1q38-2 71 14m39-44q37-19 68-14m-66 29q37-18 69-15m-68 29q37-16 70-14m-69 29q38-16 72-14" stroke="#849e87" stroke-width="1.6" stroke-linecap="round"/>
+        <path d="M224 76c8-3 15-3 23-3v52l-11-7-12 12z" fill="#e6b968"/>
+        <path d="M54 99v-22m-11 11h22m222-53v-17m-8 8h16m21 120v-22m-11 11h22" stroke="#6b9378" stroke-width="2" stroke-linecap="round"/><circle cx="70" cy="47" r="4" fill="#d0a04b"/><circle cx="305" cy="90" r="4" fill="#d0a04b"/>
+      </svg>
+    </section>
+    <section id="reading" aria-labelledby="view-title">
+      <div class="section-head"><div><p class="eyebrow">From the notebook</p><h2 id="view-title">Latest entries</h2></div><p class="count" id="post-count"></p></div>
+      <div class="posts" id="posts"></div>
+    </section>
+  </main>
+  <footer>Made for students</footer>
+</div>
+<div class="banner" id="wake" role="status" hidden>Waking up the server, please wait...</div>
+<div class="sr" id="announcement" role="status"></div>
+<dialog class="private-dialog" id="auth-dialog" aria-labelledby="auth-title">
+  <div class="dialog-head"><h2 id="auth-title">Login</h2><button type="button" class="quiet" data-close="auth-dialog" aria-label="Close">×</button></div>
+  <form id="auth-form" class="stack" novalidate>
+    <label class="field">Username<input id="login-user" name="username" maxlength="20" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="send" required></label>
+    <label class="field">Password<input id="login-pass" name="password" type="password" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="send" required></label>
+    <button class="primary" id="auth-submit">Login</button>
+    <button type="button" class="quiet" id="auth-toggle">Switch to Register</button>
+  </form>
+  <p id="auth-status" class="status error" role="status"></p>
+</dialog>
+<dialog class="private-dialog" id="rooms-dialog" aria-labelledby="rooms-title">
+  <div class="dialog-head"><h2 id="rooms-title">Your rooms</h2><button type="button" class="quiet" data-close="rooms-dialog" aria-label="Close">×</button></div>
+  <ul id="room-items" class="room-items"></ul>
+  <form id="room-join" class="inline" novalidate>
+    <label for="room-code" class="sr">Room code</label><input id="room-code" placeholder="Join with code" maxlength="12" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="send">
+    <button class="primary">Join</button>
+  </form>
+  <p id="rooms-status" class="status" role="status"></p>
+</dialog>
+<section id="private" class="private-screen" aria-label="Private chat" hidden>
+  <div class="workspace" id="workspace">
+    <aside class="inbox" aria-labelledby="inbox-title">
+      <div class="inbox-head"><div><p class="dm-kicker">Private space</p><h2 id="inbox-title">Messages</h2></div><button type="button" class="quiet icon-button" id="inbox-join" aria-label="Join with a code">＋</button></div>
+      <p class="inbox-label">Your rooms</p>
+      <ul class="inbox-rooms" id="inbox-rooms"></ul>
+      <div class="inbox-foot" id="inbox-account"></div>
+    </aside>
+    <div class="chat" id="chat">
+      <header class="chat-top">
+        <button type="button" id="back" class="quiet icon-button" aria-label="Back to blog"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>
+        <div class="chat-heading"><span class="avatar" id="room-avatar" aria-hidden="true">#</span><div><h1 id="chat-title">Chat</h1><p class="chat-context">Private room</p></div></div>
+        <div class="chat-tools">
+          <button type="button" id="chat-rooms" class="quiet icon-button" aria-label="Your rooms" title="Your rooms"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-8.5 8.5 9 9 0 0 1-3.9-.9L4 20l.9-4.6a9 9 0 0 1-.9-3.9A8.4 8.4 0 0 1 12.5 3 8.4 8.4 0 0 1 21 11.5Z"/><path d="M9 12h7"/></svg></button>
+          <button type="button" id="show-panel" class="quiet icon-button" aria-label="Admin Panel" title="Admin Panel" hidden><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 6 5 4 4-6 4 6 5-4-2 11H5L3 6zm3 14h12"/></svg></button>
+          <button type="button" id="my-profile" class="quiet icon-button" aria-label="Your profile" title="Your profile"></button>
+        </div>
+      </header>
+      <p id="chat-status" class="status" role="status"></p>
+      <div class="messages" id="messages" role="log" aria-label="Messages" tabindex="0"></div>
+      <form class="inline composer" id="chat-form">
+        <label class="sr" for="chat-input">Message</label><input id="chat-input" maxlength="1000" placeholder="Write a message…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="send">
+        <button class="primary">Send</button>
+      </form>
+    </div>
+    <aside class="owner-pane" id="owner-pane" aria-labelledby="panel-title" hidden>
+      <div class="pane-head"><h2 id="panel-title">Admin Panel</h2><button type="button" id="close-panel" class="quiet">Back to chat</button></div>
+      <p id="owner-status" class="status" role="status"></p>
+      <h3>Create Room</h3>
+      <form class="stack" id="create-room">
+        <div class="inline admin-form"><label class="sr" for="room-name">Room name</label><input id="room-name" maxlength="80" required placeholder="Room name" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="send"><button class="primary">Generate Code</button></div>
+        <label><input type="checkbox" id="owner-only"> Owner only</label>
+      </form>
+      <h3>Codes</h3>
+      <table class="code-table"><thead><tr><th scope="col">Code</th><th scope="col">Room Name</th><th scope="col">Status</th><th scope="col">Actions</th></tr></thead><tbody id="code-rows"></tbody></table>
+      <h3>Users</h3>
+      <table class="user-table"><thead><tr><th scope="col">Username</th><th scope="col">Role</th><th scope="col">Assign role</th></tr></thead><tbody id="user-rows"></tbody></table>
+      <h3>Roles</h3>
+      <form class="inline admin-form" id="create-role">
+        <label class="field">Role name<input id="role-name" maxlength="24" required autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="send"></label>
+        <label class="field">Color<input id="role-color" type="color" value="#23543d"></label><button class="primary">Create role</button>
+      </form>
+      <div id="role-list" class="role-list"></div>
+    </aside>
+  </div>
+</section>
+<dialog class="private-dialog" id="profile-dialog" aria-labelledby="profile-title">
+  <div class="dialog-head"><h2 id="profile-title">Profile</h2><button type="button" class="quiet" data-close="profile-dialog" aria-label="Close profile">×</button></div>
+  <div class="profile-identity" id="profile-identity"></div>
+  <p class="profile-banner" id="profile-banner"></p>
+</dialog>
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const posts = [
+  [1,'Study Tips','How to Focus for Exams','Pick one concrete task before you sit down, such as solving three past-paper questions. Put your phone somewhere you cannot reach from your chair and work for 25 minutes. When the timer ends, take a short break and write down exactly where to start next.'],
+  [2,'Notes','Best Notes Method','Divide a page into cues on the left, notes on the right, and a short summary at the bottom. After class, turn the main ideas into questions in the cue column. Cover your notes a day later and answer those questions from memory before checking.'],
+  [3,'Notes','Maths Revision Plan','Start the week with a timed set of mixed questions to find the topics that cost you marks. Put each mistake in a log with the step you missed, not just the correct answer. Redo a few of those problems without looking on Thursday, then try a fresh mixed set at the weekend.'],
+  [4,'Notes','Writing in public, gently','Write a three-sentence explanation of one concept you learned this week. Share it with a study partner and ask them which part was hardest to follow. Revise one sentence based on their answer; you do not need a polished essay to practise explaining clearly.'],
+  [5,'Study Tips','What makes a room feel alive?','Give a study group one small job to do before meeting, such as bringing a question they got wrong. Let everyone try each question quietly before discussing it. End by choosing a problem to revisit next time so there is a clear reason to come back.'],
+  [6,'Study Tips','Slow progress is still progress','Track what you can now recall without notes rather than how many hours you spent at the desk. If a task feels too large, slice off something you can finish in ten minutes. At the end of the week, compare that small win with what felt difficult on Monday.']
+];
+const blogCards = new Map();
+let user = null, savedCommand = null, authMode = 'login', room = null, pollTimer, pollRequest;
+let wakeCount = 0, pollWaiting = false, panelAllowed = false;
+let roomRequestId = 0, roomsRequestId = 0, inboxRequestId = 0;
+const authDialog = $('auth-dialog'), roomsDialog = $('rooms-dialog'), profileDialog = $('profile-dialog');
+const list = $('messages');
+const compact = matchMedia('(max-width:900px)');
+const msgTime = new Intl.DateTimeFormat(undefined,{ hour:'2-digit', minute:'2-digit', hourCycle:'h23' });
+function element(tag, className, text) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text !== undefined) node.textContent = text;
+  return node;
+}
+function button(text, action, className = 'quiet') {
+  const node = element('button',className,text);
+  node.type = 'button';
+  node.addEventListener('click',action);
+  return node;
+}
+function status(id, message = '', error = false) {
+  const node = typeof id === 'string' ? $(id) : id;
+  node.textContent = message;
+  node.classList.toggle('error',error);
+}
+function syncWake() { $('wake').hidden = !pollWaiting && wakeCount === 0; }
+function delay(ms) { return new Promise(resolve => setTimeout(resolve,ms)); }
+async function api(path, { method = 'GET', body, signal, showWake = false } = {}) {
+  const controller = new AbortController();
+  const abort = () => controller.abort();
+  if (signal?.aborted) abort(); else signal?.addEventListener('abort',abort,{ once:true });
+  let counted = false;
+  const wakeTimer = showWake ? setTimeout(() => { counted = true; wakeCount++; syncWake(); },1400) : undefined;
+  const timeout = setTimeout(abort,22000);
+  try {
+    const response = await fetch(`/api${path}`, {
+      method, signal:controller.signal, credentials:'same-origin', cache:'no-store',
+      ...(body === undefined ? {} : { headers:{ 'Content-Type':'application/json' }, body:JSON.stringify(body) })
+    });
+    const data = await response.json().catch(() => null);
+    if (!response.ok || !data) {
+      const error = new Error(data?.error || 'The server is temporarily unavailable.');
+      error.status = response.ok ? 503 : response.status;
+      throw error;
+    }
+    return data;
+  } catch (error) {
+    if (signal?.aborted) throw error;
+    if (error instanceof TypeError || error.name === 'AbortError') {
+      const offline = new Error('Connection interrupted. Please try again.');
+      offline.status = 503;
+      throw offline;
+    }
+    throw error;
+  } finally {
+    signal?.removeEventListener('abort',abort);
+    clearTimeout(timeout); clearTimeout(wakeTimer);
+    if (counted) { wakeCount--; syncWake(); }
+  }
+}
+async function readWithBackoff(path, maxAttempts = 5) {
+  let wait = 1000, counted = false;
+  try {
+    for (let attempt = 1; ; attempt++) {
+      try { return await api(path,{ showWake:true }); }
+      catch (error) {
+        if (error.status < 500 || attempt >= maxAttempts) throw error;
+        if (!counted) { counted = true; wakeCount++; syncWake(); }
+        await delay(wait);
+        wait = Math.min(wait * 2,10000);
+      }
+    }
+  } finally { if (counted) { wakeCount--; syncWake(); } }
+}
+async function initialize() {
+  try { user = (await readWithBackoff('/me',Infinity)).user; }
+  catch (error) { status('announcement',error.message,true); }
+}
+const ready = initialize();
+function viewBlog() {
+  const route = location.hash.slice(1).toLowerCase();
+  const selected = ['home','notes','study-tips','about'].includes(route) ? route : 'home';
+  const views = {
+    home:['The study desk','Make room to learn.','Practical notes, better study habits, and small ways to make hard subjects feel a little more manageable.','Latest entries'],
+    notes:['The notebook','Notes that stick.','Find practical ways to capture what you learn and recall it when it matters.','Notes'],
+    'study-tips':['Better habits','Study a little smarter.','Small, repeatable routines for the next time you sit down to study.','Study tips'],
+    about:['About the blog','A quiet study desk.','ShadowBlog is a small collection of study notes and habits you can try today. Start with one idea that fits the way you learn.','']
+  };
+  const [label,title,copy,section] = views[selected];
+  $('hero-label').textContent = label; $('hero-title').textContent = title; $('hero-text').textContent = copy;
+  $('view-title').textContent = section; $('reading').hidden = selected === 'about';
+  let count = 0;
+  for (const card of blogCards.values()) {
+    card.node.hidden = !(selected === 'home' || (selected === 'notes' && card.category === 'Notes') || (selected === 'study-tips' && card.category === 'Study Tips'));
+    if (!card.node.hidden) count++;
+  }
+  $('post-count').textContent = `${count} ${count === 1 ? 'entry' : 'entries'}`;
+  for (const link of $('navigation').querySelectorAll('a')) {
+    if (link.hash === `#${selected}`) link.setAttribute('aria-current','page'); else link.removeAttribute('aria-current');
+  }
+  $('navigation').classList.remove('open'); $('menu-toggle').setAttribute('aria-expanded','false');
+}
+function appendComment(card, comment) {
+  if (card.ids.has(comment.id)) return;
+  card.ids.add(comment.id);
+  const item = element('div','comment');
+  item.dataset.id = comment.id;
+  const time = element('time',null,msgTime.format(new Date(comment.created_at)));
+  time.dateTime = comment.created_at;
+  item.append(element('strong',null,comment.username),time,element('p',null,comment.text));
+  const next = [...card.list.children].find(node => Number(node.dataset.id) > comment.id);
+  card.list.insertBefore(item,next || null);
+  if (card.list.children.length > 200) {
+    const oldest = card.list.firstElementChild;
+    card.ids.delete(Number(oldest.dataset.id)); oldest.remove();
+  }
+}
+function textInput(id, max, placeholder) {
+  const input = element('input');
+  input.id = id; input.maxLength = max; input.placeholder = placeholder;
+  for (const [name,value] of Object.entries({ autocomplete:'off', autocorrect:'off', autocapitalize:'off', spellcheck:'false', enterkeyhint:'send' })) input.setAttribute(name,value);
+  return input;
+}
+function renderPosts() {
+  for (const [id,category,title,copy] of posts) {
+    const node = element('article','card'), meta = element('div','post-meta');
+    meta.append(element('span','tag',category),element('span',null,'1 min read'));
+    const area = element('div','comment-area'), details = element('details'), summary = element('summary',null,'Comments');
+    const commentList = element('div','comments'), note = element('p','status');
+    note.setAttribute('role','status');
+    const form = element('form','inline'), input = textInput(`comment-post-${id}`,500,'Write a comment…');
+    const label = element('label','sr',`Comment on ${title}`); label.htmlFor = input.id;
+    const submit = element('button','quiet','Post');
+    form.append(label,input,submit); details.append(summary,commentList); area.append(details,form,note);
+    node.append(meta,element('h3',null,title),element('p',null,copy),area); $('posts').append(node);
+    const card = { node, category, list:commentList, ids:new Set() };
+    blogCards.set(id,card);
+    details.addEventListener('toggle',async () => {
+      if (!details.open) return;
+      await ready;
+      try {
+        const data = await readWithBackoff(`/posts/${id}/comments`);
+        for (const comment of data.comments) appendComment(card,comment);
+        if (!card.ids.size) status(note,'No comments yet.');
+      } catch (error) { status(note,error.message,true); }
+    });
+    form.addEventListener('submit',async event => {
+      event.preventDefault();
+      const raw = input.value, text = raw.trim();
+      const command = parseCommand(text);
+      if (command) { input.value = ''; await runCommand(command,note); return; }
+      if (!text) { status(note,'Write a comment before posting.',true); return; }
+      submit.disabled = true;
+      try {
+        await ready;
+        const { comment } = await api(`/posts/${id}/comments`,{ method:'POST', body:{ text }, showWake:true });
+        if (input.value === raw) input.value = '';
+        appendComment(card,comment); details.open = true; status(note,'Comment posted.');
+      } catch (error) { status(note,error.message,true); }
+      finally { submit.disabled = false; }
+    });
+  }
+}
+function parseCommand(text) {
+  const match = /^\/(join|admin|rooms|logout)(?=\s|$)(?:\s+([\s\S]*))?$/i.exec(text);
+  return match ? { name:match[1].toLowerCase(), code:(match[2] || '').trim().toUpperCase() } : null;
+}
+function authView(mode) {
+  authMode = mode;
+  const register = mode === 'register';
+  $('auth-title').textContent = register ? 'Register' : 'Login'; $('auth-submit').textContent = register ? 'Register' : 'Login';
+  $('auth-toggle').textContent = register ? 'Switch to Login' : 'Switch to Register';
+  status('auth-status');
+}
+function openAuth(command, target) {
+  savedCommand = { command, target };
+  if (roomsDialog.open) roomsDialog.close();
+  if (profileDialog.open) profileDialog.close();
+  $('auth-form').reset(); authView('login');
+  if (!authDialog.open) authDialog.showModal();
+}
+async function runCommand(command, target) {
+  status(target);
+  await ready;
+  try {
+    if (command.name === 'logout') {
+      await api('/auth/logout',{ method:'POST', showWake:true });
+      user = null; savedCommand = null;
+      if (authDialog.open) authDialog.close();
+      if (roomsDialog.open) roomsDialog.close();
+      leavePrivate();
+      location.hash = '#home';
+      status('announcement','Logged out.');
+      return;
+    }
+    if (!user) { openAuth(command,target); return; }
+    switch (command.name) {
+      case 'join': await openRoom(command.code); break;
+      case 'rooms': await openRooms(); break;
+      case 'admin':
+        user = (await readWithBackoff('/me')).user;
+        if (!user) { openAuth(command,target); return; }
+        if (user.role !== 'Owner') throw new Error('Access Denied - Owner Only');
+        await openAdmin(); break;
+    }
+  } catch (error) {
+    if (error.status === 401 && command.name !== 'logout') { user = null; openAuth(command,target); return; }
+    status(target,error.message,true);
+  }
+}
+function avatar(name, crown = false) {
+  const words = name.trim().split(/\s+/);
+  const initials = words.slice(0,2).map(word => Array.from(word)[0] || '').join('').toUpperCase();
+  const node = element('span',`avatar${crown ? ' owner-avatar' : ''}`,crown ? '♛' : initials || '#');
+  node.setAttribute('aria-hidden','true');
+  return node;
+}
+function showProfile(account) {
+  if (!account || $('private').hidden) return;
+  const owner = account.role === 'Owner';
+  const self = account.username === user?.username;
+  const badge = badgeFor(account.role,account.color);
+  if (owner) badge.classList.add('owner-badge');
+  $('profile-title').textContent = self ? 'Your profile' : 'Chat profile';
+  $('profile-identity').replaceChildren(avatar(account.username,owner),element('h3',null,`@${account.username}`),badge);
+  const banner = $('profile-banner');
+  banner.classList.toggle('owner-banner',owner);
+  banner.textContent = owner ? 'ShadowBlog Owner · Manages private rooms, invite codes, and access.' : self ? 'This is how your account appears to others in chat.' : 'Private chat member';
+  if (!profileDialog.open) profileDialog.showModal();
+}
+function roomItem(entry, target) {
+  const row = element('li');
+  const control = button('',() => void runCommand({ name:'join', code:entry.code },target),'inbox-item');
+  control.append(avatar(entry.room),element('span','inbox-name',entry.room));
+  if (room?.code === entry.code) control.setAttribute('aria-current','true');
+  row.append(control);
+  return row;
+}
+async function refreshInbox() {
+  const request = ++inboxRequestId;
+  const currentUser = user;
+  const nodes = $('inbox-rooms');
+  if (compact.matches || $('private').hidden || !currentUser || !$('owner-pane').hidden) return;
+  nodes.replaceChildren(element('li','inbox-note','Loading rooms…'));
+  try {
+    const { rooms } = await api('/rooms');
+    if (request !== inboxRequestId || user !== currentUser) return;
+    nodes.replaceChildren(...(rooms.length ? rooms.map(entry => roomItem(entry,$('chat-status'))) : [element('li','inbox-note','No rooms joined yet.')]));
+  } catch {
+    if (request === inboxRequestId) nodes.replaceChildren(element('li','inbox-note','Could not load rooms. Use + to try again.'));
+  }
+}
+function renderAccount() {
+  if (!user) return;
+  $('my-profile').replaceChildren(avatar(user.username,user.role === 'Owner'));
+  const control = button('',() => showProfile(user),'inbox-item');
+  const details = element('div','inbox-name');
+  details.append(element('strong',null,`@${user.username}`),element('p','chat-context',user.role === 'Owner' ? 'Owner profile' : 'Your profile'));
+  control.append(avatar(user.username,user.role === 'Owner'),details);
+  $('inbox-account').replaceChildren(control);
+}
+async function openRooms() {
+  const request = ++roomsRequestId;
+  const nodes = $('room-items'); nodes.replaceChildren();
+  status('rooms-status','Loading your rooms…');
+  if (!roomsDialog.open) roomsDialog.showModal();
+  try {
+    const { rooms } = await readWithBackoff('/rooms');
+    if (request !== roomsRequestId || !roomsDialog.open) return;
+    for (const entry of rooms) nodes.append(roomItem(entry,$('rooms-status')));
+    status('rooms-status',rooms.length ? '' : 'No rooms joined yet. Enter a code to join.');
+  } catch (error) {
+    if (error.status === 401) throw error;
+    if (request === roomsRequestId && roomsDialog.open) status('rooms-status',error.message,true);
+  }
+}
+function resizePrivate() {
+  const vp = window.visualViewport;
+  if (!vp || $('private').hidden) return;
+  $('private').style.setProperty('--vp-height',`${vp.height}px`);
+  $('private').style.setProperty('--vp-top',`${vp.offsetTop}px`);
+}
+function syncPane() {
+  const overlay = compact.matches && !$('owner-pane').hidden;
+  $('chat').inert = overlay;
+  $('show-panel').hidden = !panelAllowed || !$('owner-pane').hidden;
+}
+function showPrivate() {
+  $('blog').inert = true; document.body.classList.add('private'); $('private').hidden = false;
+  resizePrivate(); syncPane();
+}
+function setPanel(visible) { $('owner-pane').hidden = !visible; $('workspace').classList.toggle('panel-open',visible); syncPane(); }
+function stopPoll() {
+  clearTimeout(pollTimer); pollTimer = undefined;
+  pollRequest?.abort(); pollRequest = undefined;
+  pollWaiting = false; syncWake();
+}
+function leavePrivate() {
+  ++roomRequestId; ++inboxRequestId; stopPoll(); room = null; panelAllowed = false; setPanel(false);
+  $('private').hidden = true; $('blog').inert = false; document.body.classList.remove('private');
+  $('chat-input').value = ''; list.replaceChildren(); $('inbox-rooms').replaceChildren(); $('inbox-account').replaceChildren();
+  if (profileDialog.open) profileDialog.close();
+  const selected = $('navigation').querySelector('[aria-current=page]');
+  (selected && selected.getClientRects().length ? selected : document.querySelector('.logo')).focus({ preventScroll:true });
+}
+function enterChat(entry, allowPanel = false) {
+  stopPoll();
+  room = entry ? { ...entry, lastId:null, ids:new Map(), pending:new Map() } : null;
+  panelAllowed = allowPanel; setPanel(allowPanel);
+  $('chat-title').textContent = entry?.room || 'Admin Chat';
+  $('room-avatar').textContent = avatar(entry?.room || 'Admin Chat').textContent;
+  $('chat-input').value = ''; $('chat-form').hidden = !entry;
+  list.replaceChildren(); list.dataset.state = entry ? 'Loading messages…' : 'This room is unavailable.'; status('chat-status');
+  if (roomsDialog.open) roomsDialog.close();
+  showPrivate(); renderAccount(); void refreshInbox();
+  (allowPanel ? $('close-panel') : $('back')).focus({ preventScroll:true });
+  if (room) void poll(room);
+}
+function roomPath(code) { return `/rooms/${encodeURIComponent(code)}/messages`; }
+async function openRoom(code) {
+  if (!/^[A-Z0-9]{1,12}$/.test(code)) throw new Error(code ? 'This code is invalid / expired. Ask admin to Validate it.' : 'Enter a room code, for example /join CODE.');
+  const request = ++roomRequestId;
+  const result = await readWithBackoff(`/codes/${encodeURIComponent(code)}/check`);
+  if (request !== roomRequestId || !user) return;
+  if (room?.code === code) {
+    if (roomsDialog.open) roomsDialog.close();
+    if (!$('owner-pane').hidden) { setPanel(false); $('back').focus({ preventScroll:true }); void refreshInbox(); }
+  } else enterChat(result.room);
+}
+async function openAdmin() {
+  const request = ++roomRequestId;
+  let entry, failure;
+  try { entry = (await readWithBackoff('/codes/ADMIN/check')).room; }
+  catch (error) { if (error.status === 401) throw error; failure = error; }
+  if (request !== roomRequestId || !user) return;
+  enterChat(entry,true);
+  if (failure) status('chat-status',failure.message,true);
+  await loadPanel();
+}
+function atEnd() { return list.scrollHeight - list.scrollTop - list.clientHeight <= 80; }
+function catchUp(shouldScroll) { if (shouldScroll) list.scrollTop = list.scrollHeight; }
+function badgeFor(role, color) {
+  const badge = element('span','badge',role === 'Owner' ? 'OWNER' : role);
+  badge.style.setProperty('--role-color',/^#[a-f0-9]{6}$/i.test(color || '') ? color : '#555d6d');
+  return badge;
+}
+function messageNode(message, own, pending = false) {
+  const node = element('article','message');
+  node.classList.toggle('own',own); node.classList.toggle('owner',message.role === 'Owner');
+  if (['Admin','Mod','VIP','Member'].includes(message.role)) node.classList.add(`role-${message.role.toLowerCase()}`);
+  const meta = element('div','message-meta');
+  const time = element('time',null,msgTime.format(new Date(message.created_at)));
+  time.dateTime = message.created_at;
+  const author = button('',() => showProfile(message),'message-author');
+  author.setAttribute('aria-label',`Profile: ${message.username}`);
+  author.append(avatar(message.username,message.role === 'Owner'),element('strong',null,`${message.role === 'Owner' ? '👑 ' : ''}${message.username}`));
+  meta.append(author,badgeFor(message.role,message.color),time);
+  if (message.role === 'Owner') {
+    const sparkle = element('span','sparkle','✨'); sparkle.setAttribute('aria-hidden','true'); meta.append(sparkle);
+  }
+  node.append(meta,element('p',null,message.text));
+  if (pending) node.append(element('span','notice','Sending…'));
+  return node;
+}
+function addSaved(current, message) {
+  let wasPending = false;
+  if (message.username === user?.username && current.pending.has(message.client_id)) {
+    current.pending.get(message.client_id).node.remove();
+    current.pending.delete(message.client_id);
+    wasPending = true;
+  }
+  if (current.ids.has(message.id)) return { added:false, wasPending };
+  const node = messageNode(message,message.username === user?.username);
+  current.ids.set(message.id,node);
+  let next = list.lastElementChild;
+  while (next && (!next.dataset.id || Number(next.dataset.id) > message.id)) next = next.previousElementSibling;
+  node.dataset.id = message.id;
+  list.insertBefore(node,next ? next.nextSibling : list.firstChild);
+  return { added:true, wasPending };
+}
+async function poll(current) {
+  if (document.hidden || room !== current || pollRequest) return;
+  const controller = new AbortController(); pollRequest = controller;
+  let wait = 2000;
+  try {
+    const suffix = current.lastId === null ? '' : `?after=${current.lastId}`;
+    const { messages } = await api(roomPath(current.code) + suffix,{ signal:controller.signal, showWake:true });
+    if (room !== current || controller.signal.aborted) return;
+    const near = atEnd();
+    let added = false, own = false;
+    for (const message of messages) {
+      const result = addSaved(current,message);
+      added ||= result.added;
+      own ||= result.wasPending || (result.added && current.lastId !== null && message.username === user?.username);
+    }
+    if (messages.length) current.lastId = messages[messages.length - 1].id;
+    else if (current.lastId === null) current.lastId = 0;
+    catchUp(own || (added && near));
+    list.dataset.state = 'No messages yet. Say hello!';
+    pollWaiting = false; syncWake();
+    status('chat-status');
+  } catch (error) {
+    if (room !== current || controller.signal.aborted) return;
+    wait = 10000;
+    list.dataset.state = error.status >= 500 ? 'Reconnecting…' : 'Messages are unavailable.';
+    pollWaiting = error.status >= 500; syncWake();
+    status('chat-status',pollWaiting ? '' : error.message,true);
+  } finally {
+    if (pollRequest === controller) {
+      pollRequest = undefined;
+      if (room === current && !document.hidden) pollTimer = setTimeout(() => void poll(current),wait);
+    }
+  }
+}
+function requestId() {
+  if (crypto.randomUUID) return crypto.randomUUID();
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  bytes[6] = (bytes[6] & 15) | 64; bytes[8] = (bytes[8] & 63) | 128;
+  const hex = [...bytes].map(n => n.toString(16).padStart(2,'0')).join('');
+  return hex.replace(/^(.{8})(.{4})(.{4})(.{4})(.{12})$/,'$1-$2-$3-$4-$5');
+}
+async function send(current, pending) {
+  if (room !== current || !current.pending.has(pending.id) || pending.sending) return;
+  pending.sending = true;
+  pending.node.lastChild.replaceWith(element('span','notice','Sending…'));
+  try {
+    const { message } = await api(roomPath(current.code),{ method:'POST', body:{ text:pending.text, client_id:pending.id } });
+    if (room !== current) return;
+    const { added, wasPending } = addSaved(current,message);
+    catchUp(added || wasPending);
+  } catch (error) {
+    if (room !== current || !current.pending.has(pending.id)) return;
+    pending.node.lastChild.replaceWith(button('Failed - tap to retry',() => void send(current,pending),'danger'));
+    status('chat-status',error.message,true);
+  } finally { pending.sending = false; }
+}
+function cell(row, label, value) {
+  const td = element('td'); td.dataset.label = label;
+  if (typeof value === 'string') td.textContent = value; else td.append(value);
+  row.append(td);
+}
+let panelLoadId = 0;
+async function loadPanel() {
+  const load = ++panelLoadId;
+  try {
+    const [codes,users,roles] = await Promise.all(['/codes','/users','/roles'].map(path => readWithBackoff(path)));
+    if (load !== panelLoadId || !panelAllowed) return;
+    const codeRows = $('code-rows'), userRows = $('user-rows'), roleList = $('role-list');
+    codeRows.replaceChildren(); userRows.replaceChildren(); roleList.replaceChildren();
+    for (const entry of codes.codes) {
+      const row = element('tr'), actions = element('div','actions');
+      const base = `/codes/${encodeURIComponent(entry.code)}`;
+      for (const [label,active] of [['Validate',true],['Invalidate',false]]) {
+        const action = button(label,() => panelAction(action,async () => {
+          await api(`${base}/${label.toLowerCase()}`,{ method:'POST', showWake:true });
+          status('owner-status',`${entry.code} is now ${active ? 'active' : 'invalid'}.`);
+          await loadPanel();
+        }));
+        actions.append(action);
+      }
+      const remove = button('Delete',() => {
+        if (!confirm(`Delete ${entry.room} and its messages?`)) return;
+        void panelAction(remove,async () => {
+          await api(base,{ method:'DELETE', showWake:true }); status('owner-status',`${entry.code} deleted.`); await loadPanel();
+        });
+      },'danger');
+      const open = button('Open',() => panelAction(open,() => openRoom(entry.code)));
+      actions.append(remove,open);
+      cell(row,'Code',entry.code); cell(row,'Room Name',entry.room); cell(row,'Status',entry.active ? 'Active' : 'Invalid'); cell(row,'Actions',actions); codeRows.append(row);
+    }
+    for (const account of users.users) {
+      const row = element('tr'); cell(row,'Username',account.username); cell(row,'Role',account.role);
+      if (account.role === 'Owner') cell(row,'Assign role','Protected');
+      else {
+        const form = element('form','inline'), select = element('select'), assign = element('button','quiet','Assign');
+        select.setAttribute('aria-label',`Role for ${account.username}`);
+        for (const role of roles.roles.filter(role => role.name !== 'Owner')) {
+          const option = element('option',null,role.name); option.value = role.name; option.selected = account.role === role.name; select.append(option);
+        }
+        form.append(select,assign); cell(row,'Assign role',form);
+        form.addEventListener('submit',event => {
+          event.preventDefault(); void panelAction(assign,async () => {
+            await api(`/users/${account.id}/role`,{ method:'POST', body:{ role:select.value }, showWake:true });
+            status('owner-status',`Role updated for ${account.username}.`); await loadPanel();
+          });
+        });
+      }
+      userRows.append(row);
+    }
+    for (const role of roles.roles) roleList.append(badgeFor(role.name,role.color));
+  } catch (error) { if (load === panelLoadId && panelAllowed) status('owner-status',error.message,true); }
+}
+async function panelAction(control, fn) {
+  control.disabled = true;
+  try { await fn(); } catch (error) { status('owner-status',error.message,true); }
+  finally { control.disabled = false; }
+}
+renderPosts(); viewBlog();
+window.addEventListener('hashchange',viewBlog);
+$('menu-toggle').addEventListener('click',() => $('menu-toggle').setAttribute('aria-expanded',String($('navigation').classList.toggle('open'))));
+for (const link of $('navigation').querySelectorAll('a')) link.addEventListener('click',() => {
+  $('navigation').classList.remove('open'); $('menu-toggle').setAttribute('aria-expanded','false');
+});
+for (const control of document.querySelectorAll('[data-close]')) control.addEventListener('click',() => $(control.dataset.close).close());
+authDialog.addEventListener('close',() => { if (!authDialog.open) { savedCommand = null; $('login-pass').value = ''; } });
+$('auth-toggle').addEventListener('click',() => authView(authMode === 'login' ? 'register' : 'login'));
+$('auth-form').addEventListener('submit',async event => {
+  event.preventDefault(); if ($('auth-submit').disabled) return;
+  const username = $('login-user').value.trim().toLowerCase(), password = $('login-pass').value;
+  if (!/^[a-z0-9_]{3,20}$/.test(username)) { status('auth-status','Username must be 3–20 characters: a–z, 0–9, or underscore.',true); return; }
+  if (authMode === 'register' && password.length < 6) { status('auth-status','Password must be at least 6 characters.',true); return; }
+  $('auth-submit').disabled = true; $('auth-toggle').disabled = true;
+  const next = savedCommand;
+  try {
+    user = (await api(`/auth/${authMode}`,{ method:'POST', body:{ username,password }, showWake:true })).user;
+    const resume = next && savedCommand === next && authDialog.open;
+    if (authDialog.open) authDialog.close();
+    $('login-pass').value = '';
+    if (resume) await runCommand(next.command,next.target);
+  } catch (error) { if (authDialog.open) status('auth-status',error.message,true); }
+  finally { $('auth-submit').disabled = false; $('auth-toggle').disabled = false; }
+});
+$('room-join').addEventListener('submit',event => {
+  event.preventDefault(); const code = $('room-code').value.trim().toUpperCase(); $('room-code').value = '';
+  void runCommand({ name:'join',code },$('rooms-status'));
+});
+$('back').addEventListener('click',leavePrivate);
+$('my-profile').addEventListener('click',() => showProfile(user));
+for (const id of ['chat-rooms','inbox-join']) $(id).addEventListener('click',() => void runCommand({ name:'rooms' },$('chat-status')));
+$('show-panel').addEventListener('click',() => { setPanel(true); $('close-panel').focus(); void loadPanel(); });
+$('close-panel').addEventListener('click',() => { setPanel(false); $('back').focus({ preventScroll:true }); void refreshInbox(); });
+compact.addEventListener('change',() => { syncPane(); void refreshInbox(); });
+window.visualViewport?.addEventListener('resize',resizePrivate);
+window.visualViewport?.addEventListener('scroll',resizePrivate);
+document.addEventListener('visibilitychange',() => { if (document.hidden) stopPoll(); else if (room) void poll(room); });
+$('chat-form').addEventListener('submit',event => {
+  event.preventDefault();
+  if (!room || !user) return;
+  const input = $('chat-input'), text = input.value.trim(), command = parseCommand(text);
+  if (command) { input.value = ''; void runCommand(command,$('chat-status')); return; }
+  if (!text || text.length > 1000) { status('chat-status','Enter a message between 1 and 1000 characters.',true); return; }
+  input.value = '';
+  const id = requestId();
+  const node = messageNode({ username:user.username, role:user.role, text, created_at:new Date().toISOString() },true,true);
+  const pending = { id, node, text, sending:false };
+  room.pending.set(id,pending); list.append(node); catchUp(true);
+  void send(room,pending);
+});
+$('create-room').addEventListener('submit',event => {
+  event.preventDefault();
+  void panelAction(event.submitter || event.currentTarget.querySelector('button'),async () => {
+    const name = $('room-name').value;
+    const { room:created } = await api('/codes',{ method:'POST', body:{ room:name, admin_only:$('owner-only').checked }, showWake:true });
+    if ($('room-name').value === name) $('room-name').value = '';
+    status('owner-status',`Created ${created.room} — code: ${created.code}`); await loadPanel();
+  });
+});
+$('create-role').addEventListener('submit',event => {
+  event.preventDefault();
+  void panelAction(event.submitter || event.currentTarget.querySelector('button'),async () => {
+    const name = $('role-name').value;
+    const { role } = await api('/roles',{ method:'POST', body:{ name, color:$('role-color').value }, showWake:true });
+    if ($('role-name').value === name) $('role-name').value = '';
+    status('owner-status',`Created ${role.name}.`); await loadPanel();
+  });
+});
+</script>
+</body>
+</html>

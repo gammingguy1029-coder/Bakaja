@@ -1,0 +1,14 @@
+{
+  "name": "shadowblog",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A study blog with private, code-based chat rooms",
+  "engines": { "node": ">=18" },
+  "scripts": { "start": "node server.js" },
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "cookie-parser": "^1.4.7",
+    "express": "^4.21.2",
+    "pg": "^8.16.0"
+  }
+}

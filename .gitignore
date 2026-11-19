@@ -1,0 +1,8 @@
+node_modules/
+.env
+.env.*
+*.dump
+*.sql
+npm-debug.log*
+
+/out/
