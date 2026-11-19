@@ -1,0 +1,97 @@
+SHADOWBLOG — DEPLOYMENT AND TROUBLESHOOTING
+
+Project layout
+  server.js
+  package.json
+  public/index.html
+  render.yaml
+  FIX.txt
+
+Run locally
+  Install Node 18 or newer, open a terminal in this folder, and run:
+    npm install
+    npm start
+  Open http://localhost:3000. Without DATABASE_URL you will see a warning
+  and the app will run in memory. Accounts, comments, room codes, sessions,
+  and messages are all lost on restart in this mode.
+
+Deploy with a Render Blueprint
+  1. Push the project, including public/index.html, to your Git repository.
+  2. In the Render Dashboard, choose New > Blueprint and select the repo
+     and branch containing render.yaml.
+  3. When asked for ADMIN_PASSWORD, enter a strong password and keep it in
+     a password manager (bcrypt accepts up to 72 UTF-8 bytes).
+  4. Deploy. The Blueprint creates both free resources in Singapore and
+     fills in DATABASE_URL from the database automatically.
+  5. Open the deployed URL. Append /health to check the mode; on Render
+     the response should be "ok - mode: RENDER_DB". This endpoint checks
+     the web process, not the database connection. Check logs if the app
+     remains on the wake-up banner.
+
+Deploy manually
+  1. Create a free PostgreSQL database in Render first. Choose your region.
+  2. In its Connect/Info section, copy the INTERNAL Database URL, not the
+     External Database URL. Treat both URLs as credentials.
+  3. Create a free Web Service from the repository in the SAME region.
+     Use Node, build command "npm install", start command "npm start",
+     and health check path /health. Leave Root Directory blank if the
+     files are at the root of the repo.
+  4. In the web service's Environment settings, set DATABASE_URL to that
+     internal URL, ADMIN_PASSWORD to your owner password, and NODE_ENV
+     to production. Deploy the service.
+
+Use the private chat
+  Type /admin into any blog comment field and submit. Log in as admin.
+  The Admin Panel opens with Admin Chat. On mobile, tap Back to chat
+  to see the chat pane. If you left ADMIN_PASSWORD unset on first run,
+  the generated password appears once in the service's logs. Command
+  words and codes are case-insensitive. Share a room code privately; a
+  friend types /join CODE in a comment box, then registers or logs in.
+  /rooms lists your previously joined, active rooms. /logout signs out.
+
+ECONNREFUSED, connection timeout, or unexpected MEMORY_NO_DB
+  DATABASE_URL is missing, wrong, or pointing at an unreachable database.
+  Confirm the database is still running, that both resources are in the
+  same region, and that the web service has the current INTERNAL URL.
+  Correct it and redeploy. Missing DATABASE_URL starts memory mode;
+  an unreachable configured database does not silently switch to memory.
+
+ENOENT or "index.html not found - Upload public/index.html"
+  Verify the spelling and casing of public/index.html. Make sure it was
+  pushed under the public folder next to server.js, and that the service
+  uses the correct branch and root directory. Redeploy after fixing it.
+
+Cold starts
+  After 15 minutes idle the free web service sleeps. The first request
+  can take 30–60 seconds; Render may show its own page before it can serve
+  ShadowBlog's HTML. Once the page loads, ShadowBlog shows its wake-up
+  banner and retries startup requests with backoff. Optionally monitor
+  /health with UptimeRobot every 10 minutes if your plan allows that
+  interval. Render's free web services share 750 free instance-hours per
+  workspace per month; keeping an instance awake consumes those hours.
+
+Free PostgreSQL retention and expiry
+  Chat keeps the newest 500 messages per room, and comments the newest
+  200 per post; both delete entries older than 14 days. Free Postgres
+  expires after about 30 days. Back up before the dashboard's expiry date.
+
+  Use the EXTERNAL URLs for backup/restore from your own machine (the
+  internal URL is for the deployed service). With PostgreSQL client tools
+  installed, enter the old External URL securely into OLD_EXTERNAL_URL,
+  then run:
+    pg_dump --format=custom --no-owner --no-acl --file=shadowblog.dump "$OLD_EXTERNAL_URL"
+  Create a replacement database and set NEW_EXTERNAL_URL to its External
+  URL. Restore to that empty database before starting the web service
+  against it, so the app does not create or seed tables first:
+    pg_restore --no-owner --no-acl --file=shadowblog-restore.sql shadowblog.dump
+    psql "$NEW_EXTERNAL_URL" -X --set=ON_ERROR_STOP=1 --single-transaction --file=shadowblog-restore.sql
+  Update DATABASE_URL to the replacement INTERNAL URL and redeploy. For a
+  Blueprint, also update its database reference if the resource name
+  changed. Use the Dashboard's backup/export feature instead if your
+  plan offers it. Keep dumps private; they contain application data and
+  password hashes. Delete temporary exports or secure them when done.
+
+Forgot the admin password
+  Set a new ADMIN_PASSWORD in the web service's Environment settings and
+  redeploy. Startup updates the owner password in the database. The
+  username stays admin.
