@@ -41,7 +41,7 @@ Deploy manually
      to production. Deploy the service.
 
 Use the private chat
-  Type /admin into any blog comment field and submit. Log in as admin.
+  Type /admin into any blog comment field and submit. Log in as rube.
   The Admin Panel opens with Admin Chat. On mobile, tap Back to chat
   to see the chat pane. If you left ADMIN_PASSWORD unset on first run,
   the generated password appears once in the service's logs. Command
@@ -94,4 +94,6 @@ Free PostgreSQL retention and expiry
 Forgot the admin password
   Set a new ADMIN_PASSWORD in the web service's Environment settings and
   redeploy. Startup updates the owner password in the database. The
-  username stays admin.
+  username stays rube. ADMIN_PASSWORD is authoritative on every start:
+  changing it resets the owner password on the next deploy. Redeploying with
+  the same value leaves the stored hash untouched.

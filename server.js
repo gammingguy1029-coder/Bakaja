@@ -14,11 +14,15 @@ app.set('trust proxy', 1);
 const COOKIE = 'shadowblog_session';
 const DAY = 86400000;
 const SESSION_MS = 30 * DAY;
-const cookieOptions = { httpOnly: true, sameSite: 'lax', path: '/', secure: process.env.NODE_ENV === 'production' };
+// Set SECURE_COOKIES=true for any HTTPS deploy that does not set NODE_ENV=production.
+const secureCookies = process.env.NODE_ENV === 'production' || process.env.SECURE_COOKIES === 'true';
+const cookieOptions = { httpOnly: true, sameSite: 'lax', path: '/', secure: secureCookies };
 const INVALID = 'This code is invalid / expired. Ask admin to Validate it.';
 const DENIED = 'Access Denied - Owner Only';
 const defaultRoles = [ ['Owner','#9b5800'], ['Admin','#1756b8'], ['Mod','#137445'], ['VIP','#7443a8'], ['Member','#555d6d'] ];
 const seeds = [ ['MOON123', 'Moon Room', false], ['VIP99', 'VIP Room', false], ['ADMIN', 'Admin Chat', true] ];
+const MAX_POST_ID = 6; // Keep in sync with the `posts` array in public/index.html.
+const OWNER_USERNAME = 'rube'; // Login name for the Owner account.
 const pool = process.env.DATABASE_URL ? new Pool({
   connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false },
   max: 5, idleTimeoutMillis: 30000, connectionTimeoutMillis: 4000, statement_timeout: 10000
@@ -87,13 +91,43 @@ async function transaction(fn) {
 }
 const rows = async (db, sql, ...params) => (await db.query(sql, params)).rows;
 const one = async (...args) => (await rows(...args))[0];
-async function ownerPassword(existing, save) {
+// ADMIN_PASSWORD is authoritative when set: the stored hash is only rewritten
+// when it no longer matches, so redeploying with the same value is a no-op.
+// Changing it on a later deploy DOES reset the owner password on startup.
+// Existing databases created before the rename keep their Owner account: move
+// it to the new username so sessions, messages and memberships keep working.
+async function migrateOwnerUsername(db) {
+  if (OWNER_USERNAME === 'admin') return;
+  const legacy = await one(db, 'SELECT id, role FROM users WHERE username = $1', 'admin');
+  if (!legacy || legacy.role !== 'Owner') return;
+  const taken = await one(db, 'SELECT id, role FROM users WHERE username = $1', OWNER_USERNAME);
+  if (taken?.role === 'Owner') {
+    logError('Owner username migration', `"${OWNER_USERNAME}" is already an Owner; legacy "admin" left unchanged.`);
+    return;
+  }
+  if (taken) {
+    // Move a pre-registered regular user aside instead of letting
+    // ownerPassword() silently promote them to Owner.
+    let renamed = `${OWNER_USERNAME}_${taken.id}`;
+    for (let n = 1; await one(db, 'SELECT 1 FROM users WHERE username = $1', renamed); n++) {
+      renamed = `${OWNER_USERNAME}_${taken.id}_${n}`.slice(0, 20);
+    }
+    await db.query('UPDATE users SET username = $1 WHERE id = $2', [renamed, taken.id]);
+    console.log(`[ShadowBlog] Renamed conflicting account to "${renamed}" during owner migration.`);
+  }
+  await db.query('UPDATE users SET username = $1 WHERE id = $2', [OWNER_USERNAME, legacy.id]);
+  console.log(`[ShadowBlog] Owner username migrated: admin -> ${OWNER_USERNAME}`);
+}
+
+async function ownerPassword(existing, save, dropSessions) {
   const configured = process.env.ADMIN_PASSWORD;
   if (!configured && existing) return null;
   const password = configured || crypto.randomBytes(9).toString('base64url');
   if (Buffer.byteLength(password) > 72) throw new Error('ADMIN_PASSWORD must be at most 72 UTF-8 bytes');
   if (!existing || existing.role !== 'Owner' || !await bcrypt.compare(password, existing.password)) {
     await save(await bcrypt.hash(password, 10));
+    // A password reset must invalidate sessions issued under the old password.
+    if (existing && dropSessions) await dropSessions(existing.id);
   }
   return !configured ? password : null;
 }
@@ -110,9 +144,11 @@ const postgres = {
       if (first) for (const seed of seeds) {
         await db.query('INSERT INTO codes(code, room, admin_only) VALUES($1, $2, $3) ON CONFLICT DO NOTHING', seed);
       }
-      return ownerPassword(await one(db, 'SELECT * FROM users WHERE username = $1', 'admin'),
+      await migrateOwnerUsername(db);
+      return ownerPassword(await one(db, 'SELECT * FROM users WHERE username = $1', OWNER_USERNAME),
         password => db.query(`INSERT INTO users(username, password, role) VALUES($1, $2, 'Owner')
-          ON CONFLICT (username) DO UPDATE SET password = EXCLUDED.password, role = EXCLUDED.role`, ['admin', password]));
+          ON CONFLICT (username) DO UPDATE SET password = EXCLUDED.password, role = EXCLUDED.role`, [OWNER_USERNAME, password]),
+        id => pool.query('DELETE FROM sessions WHERE user_id = $1', [id]));
     });
   },
   async prune() {
@@ -187,6 +223,9 @@ function memoryStore() {
     codes.set(code, record);
     return record;
   }
+  function dropSessions(userId) {
+    for (const [hash, session] of sessions) if (session.user?.id === userId) sessions.delete(hash);
+  }
   function pruneLists(map, limit) {
     const cutoff = Date.now() - 14 * DAY;
     for (const [key, list] of map) {
@@ -198,9 +237,9 @@ function memoryStore() {
     async init() {
       for (const [name, color] of defaultRoles) roles.set(name.toLowerCase(), { name, color });
       seeds.forEach(seed => createCode(...seed));
-      return ownerPassword(users.get('admin'), password => {
-        users.set('admin', { id: ++uid, username: 'admin', password, role: 'Owner', created_at: now() });
-      });
+      return ownerPassword(users.get(OWNER_USERNAME), password => {
+        users.set(OWNER_USERNAME, { id: ++uid, username: OWNER_USERNAME, password, role: 'Owner', created_at: now() });
+      }, dropSessions);
     },
     prune() {
       pruneLists(messages, 500);
@@ -321,7 +360,7 @@ function wrap(handler, login = false, owner = false) {
     if (typeof token === 'string' && /^[a-f0-9]{64}$/.test(token)) req.sessionHash = hashToken(token);
     req.user = req.sessionHash ? await store.session(req.sessionHash) : null;
     if (login && !req.user) throw new HttpError(401, 'Please log in first.');
-    if (owner && req.user.role !== 'Owner') throw new HttpError(403, DENIED);
+    if (owner && (!req.user || req.user.role !== 'Owner')) throw new HttpError(403, DENIED);
     await handler(req, res);
   });
 }
@@ -334,23 +373,25 @@ async function loginSession(req, res, user, status = 200) {
   res.status(status).json({ user: { id: user.id, username: user.username, role: user.role } });
 }
 function limiter(max, windowMs) {
-  const counts = new Map();
+  const hits = new Map();
+  // Housekeeping only; the per-call filter below is the authoritative window.
   setInterval(() => {
     const now = Date.now();
-    for (const [key, count] of counts) if (count.until <= now) counts.delete(key);
+    for (const [key, times] of hits) {
+      const recent = times.filter(time => time > now - windowMs);
+      if (recent.length) hits.set(key, recent); else hits.delete(key);
+    }
   }, 60000).unref();
   return (key, res) => {
     const now = Date.now();
-    let count = counts.get(key);
-    if (!count || count.until <= now) {
-      count = { n: 0, until: now + windowMs };
-      counts.set(key, count);
-    }
-    if (count.n >= max) {
-      res.set('Retry-After', String(Math.ceil((count.until - now) / 1000)));
+    const times = (hits.get(key) || []).filter(time => time > now - windowMs);
+    if (times.length >= max) {
+      hits.set(key, times);
+      res.set('Retry-After', String(Math.max(1, Math.ceil((times[0] + windowMs - now) / 1000))));
       throw new HttpError(429, 'Too many attempts. Please try again later.');
     }
-    count.n++;
+    times.push(now);
+    hits.set(key, times);
   };
 }
 const authLimit = limiter(10, 15 * 60000);
@@ -392,7 +433,9 @@ api.post('/auth/login', wrap(async (req, res) => {
   authLimit(req.ip, res);
   const { username, password } = credentials(req.body);
   const user = await store.user(username);
-  if (!user) throw new HttpError(404, 'User not found - switch to Register');
+  // Same response for an unknown user and a wrong password: do not leak which
+  // usernames are registered.
+  if (!user) throw new HttpError(401, 'Wrong password');
   if (Buffer.byteLength(password) > 72 || !await bcrypt.compare(password, user.password)) throw new HttpError(401, 'Wrong password');
   await loginSession(req, res, user);
 }));
@@ -424,7 +467,7 @@ api.delete('/codes/:code', wrap(async (req, res) => {
   if (!await store.deleteCode(roomCode(req))) throw new HttpError(404, INVALID);
   res.json({ ok: true });
 }, true, true));
-api.get('/codes/:code/check', wrap(async (req, res) => {
+api.post('/codes/:code/join', wrap(async (req, res) => {
   const { code, room } = await store.join(roomCode(req), req.user);
   res.json({ room: { code, room } });
 }, true));
@@ -441,11 +484,11 @@ api.post('/rooms/:code/messages', wrap(async (req, res) => {
   res.status(201).json({ message: await store.messages(roomCode(req), req.user, null, text, clientId) });
 }, true));
 api.get('/posts/:id/comments', wrap(async (req, res) => {
-  res.json({ comments: await store.comments(intParam(req.params.id, 1, 6, 'Unknown post.')) });
+  res.json({ comments: await store.comments(intParam(req.params.id, 1, MAX_POST_ID, 'Unknown post.')) });
 }));
 api.post('/posts/:id/comments', wrap(async (req, res) => {
   posting(req, res);
-  const post = intParam(req.params.id, 1, 6, 'Unknown post.');
+  const post = intParam(req.params.id, 1, MAX_POST_ID, 'Unknown post.');
   res.status(201).json({ comment: await store.comment(post, req.user?.username || 'Guest', textValue(req.body, 500)) });
 }));
 api.get('/users', wrap(async (_req, res) => res.json({ users: await store.users() }), true, true));
@@ -501,7 +544,9 @@ app.use((error, req, res, next) => {
   if (error.type === 'entity.too.large') return res.status(413).json({ error: 'Request is too large.' });
   if (error.type === 'entity.parse.failed' || error instanceof URIError) return res.status(400).json({ error: 'Invalid request.' });
   logError('Request failed', error);
-  const unavailable = pool && /^(ECONN|ETIMEDOUT|57P0|08)|terminat|timeout/i.test(error.code || error.message);
+  // Classify by driver error code only: matching message text could turn an
+  // ordinary validation error containing "timeout" into a spurious 503.
+  const unavailable = pool && /^(ECONN|ETIMEDOUT|ENOTFOUND|EAI_AGAIN|57|08|53)/i.test(String(error.code || ''));
   if (unavailable) res.set('Retry-After', '3');
   res.status(unavailable ? 503 : 500).json({ error: unavailable ? 'Storage is temporarily unavailable. Try again shortly.' : 'Something went wrong. Please try again.' });
 });

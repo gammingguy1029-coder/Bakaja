@@ -48,7 +48,8 @@
   .comment { background:#f6f7f3; padding:8px 10px; border-radius:8px; overflow-wrap:anywhere; }
   .comment time { color:var(--muted); font-size:.8rem; margin-left:8px; }
   .inline { display:flex; align-items:center; gap:8px; min-width:0; }
-  .inline input { flex:1 1 0; }
+  .inline input,.inline select { flex:1 1 0; width:auto; }
+  .inline button { flex:0 0 auto; }
   .primary,.quiet,.danger { border:1px solid transparent; border-radius:9px; padding:8px 14px; font-weight:680; }
   .primary { color:white; background:var(--green); }
   .primary:hover { background:#173c2a; }
@@ -317,6 +318,7 @@
 <script>
 'use strict';
 const $ = id => document.getElementById(id);
+// Keep in sync with MAX_POST_ID in server.js.
 const posts = [
   [1,'Study Tips','How to Focus for Exams','Pick one concrete task before you sit down, such as solving three past-paper questions. Put your phone somewhere you cannot reach from your chair and work for 25 minutes. When the timer ends, take a short break and write down exactly where to start next.'],
   [2,'Notes','Best Notes Method','Divide a page into cues on the left, notes on the right, and a short summary at the bottom. After class, turn the main ideas into questions in the cue column. Cover your notes a day later and answer those questions from memory before checking.'],
@@ -350,7 +352,13 @@ function status(id, message = '', error = false) {
   node.textContent = message;
   node.classList.toggle('error',error);
 }
-function syncWake() { $('wake').hidden = !pollWaiting && wakeCount === 0; }
+const WAKE_TEXT = 'Waking up the server, please wait...';
+function syncWake() {
+  const node = $('wake');
+  const visible = pollWaiting || wakeCount > 0;
+  if (visible && node.dataset.error) { node.textContent = WAKE_TEXT; delete node.dataset.error; }
+  node.hidden = !visible;
+}
 function delay(ms) { return new Promise(resolve => setTimeout(resolve,ms)); }
 async function api(path, { method = 'GET', body, signal, showWake = false } = {}) {
   const controller = new AbortController();
@@ -385,11 +393,11 @@ async function api(path, { method = 'GET', body, signal, showWake = false } = {}
     if (counted) { wakeCount--; syncWake(); }
   }
 }
-async function readWithBackoff(path, maxAttempts = 5) {
+async function readWithBackoff(path, maxAttempts = 5, options = {}) {
   let wait = 1000, counted = false;
   try {
     for (let attempt = 1; ; attempt++) {
-      try { return await api(path,{ showWake:true }); }
+      try { return await api(path,{ showWake:true, ...options }); }
       catch (error) {
         if (error.status < 500 || attempt >= maxAttempts) throw error;
         if (!counted) { counted = true; wakeCount++; syncWake(); }
@@ -400,8 +408,16 @@ async function readWithBackoff(path, maxAttempts = 5) {
   } finally { if (counted) { wakeCount--; syncWake(); } }
 }
 async function initialize() {
-  try { user = (await readWithBackoff('/me',Infinity)).user; }
-  catch (error) { status('announcement',error.message,true); }
+  // 12 attempts cover a ~60s Render cold start, but must give up eventually so
+  // the rest of the UI (comments, dialogs) is not left waiting on `ready`.
+  try { user = (await readWithBackoff('/me',12)).user; }
+  catch (error) {
+    const message = error.message || 'Could not connect to the server. Please reload.';
+    status('announcement',message,true);
+    $('wake').textContent = message;
+    $('wake').dataset.error = 'true';
+    $('wake').hidden = false;
+  }
 }
 const ready = initialize();
 function viewBlog() {
@@ -570,7 +586,7 @@ async function refreshInbox() {
   if (compact.matches || $('private').hidden || !currentUser || !$('owner-pane').hidden) return;
   nodes.replaceChildren(element('li','inbox-note','Loading rooms…'));
   try {
-    const { rooms } = await api('/rooms');
+    const { rooms } = await readWithBackoff('/rooms');
     if (request !== inboxRequestId || user !== currentUser) return;
     nodes.replaceChildren(...(rooms.length ? rooms.map(entry => roomItem(entry,$('chat-status'))) : [element('li','inbox-note','No rooms joined yet.')]));
   } catch {
@@ -647,7 +663,7 @@ function roomPath(code) { return `/rooms/${encodeURIComponent(code)}/messages`; 
 async function openRoom(code) {
   if (!/^[A-Z0-9]{1,12}$/.test(code)) throw new Error(code ? 'This code is invalid / expired. Ask admin to Validate it.' : 'Enter a room code, for example /join CODE.');
   const request = ++roomRequestId;
-  const result = await readWithBackoff(`/codes/${encodeURIComponent(code)}/check`);
+  const result = await readWithBackoff(`/codes/${encodeURIComponent(code)}/join`, 5, { method:'POST' });
   if (request !== roomRequestId || !user) return;
   if (room?.code === code) {
     if (roomsDialog.open) roomsDialog.close();
@@ -657,7 +673,7 @@ async function openRoom(code) {
 async function openAdmin() {
   const request = ++roomRequestId;
   let entry, failure;
-  try { entry = (await readWithBackoff('/codes/ADMIN/check')).room; }
+  try { entry = (await readWithBackoff('/codes/ADMIN/join', 5, { method:'POST' })).room; }
   catch (error) { if (error.status === 401) throw error; failure = error; }
   if (request !== roomRequestId || !user) return;
   enterChat(entry,true);
@@ -699,10 +715,11 @@ function addSaved(current, message) {
   if (current.ids.has(message.id)) return { added:false, wasPending };
   const node = messageNode(message,message.username === user?.username);
   current.ids.set(message.id,node);
-  let next = list.lastElementChild;
-  while (next && (!next.dataset.id || Number(next.dataset.id) > message.id)) next = next.previousElementSibling;
+  // Keep saved messages sorted by id, always ahead of pending (optimistic)
+  // sends, which have no data-id until their save is confirmed.
+  const next = [...list.children].find(child => !child.dataset.id || Number(child.dataset.id) > message.id);
   node.dataset.id = message.id;
-  list.insertBefore(node,next ? next.nextSibling : list.firstChild);
+  list.insertBefore(node,next || null);
   return { added:true, wasPending };
 }
 async function poll(current) {
