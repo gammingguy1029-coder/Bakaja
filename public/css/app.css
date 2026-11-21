@@ -1,0 +1,56 @@
+/* WhatsApp-style three-column shell for /app. Loaded last; overrides chat.css. */
+body.app-page { overflow:hidden; }
+.app-screen .workspace { width:100%; max-width:none; height:100%; border:0; }
+.app-sidebar { flex:0 0 336px; width:336px; padding:0; display:flex; flex-direction:column; gap:0; border-right:1px solid var(--line); }
+.sidebar-head { display:flex; align-items:center; gap:6px; padding:11px 12px; border-bottom:1px solid var(--line); background:#131119; }
+.sidebar-me { display:flex; align-items:center; gap:9px; flex:1; min-width:0; }
+.sidebar-identity { display:grid; min-width:0; }
+.sidebar-identity strong { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:.94rem; }
+.sidebar-identity small { color:var(--muted); font-size:.72rem; }
+.sidebar-tools { display:flex; align-items:center; justify-content:space-between; padding:9px 12px 5px; }
+.sidebar-tools .quiet { min-height:36px; font-size:.85rem; }
+.inline-badge { position:static; display:inline-block; min-width:16px; height:16px; line-height:16px; margin-left:4px; }
+.app-tabs { margin:0; padding:0 10px 8px; gap:5px; border-bottom:1px solid var(--line); }
+.app-tabs .tab { min-height:32px; padding:5px 12px; border-radius:999px; font-size:.82rem; }
+.app-tabs .tab[aria-selected=true] { background:#332b44; color:#f4efff; }
+.app-tabs .tab[aria-selected=true]:hover { background:#3d3256; }
+.sidebar-body { flex:1; min-height:0; overflow:auto; padding:8px; }
+.chat-list,.app-tab-panel .social-list { list-style:none; margin:0; padding:0; display:grid; gap:2px; }
+.chat-row { display:flex; align-items:center; gap:10px; width:100%; padding:9px 10px; border:1px solid transparent; border-radius:12px; background:transparent; color:var(--ink); text-align:left; min-height:58px; }
+.chat-row:hover { background:#24202e; }
+.chat-row[aria-current=true] { background:#2c2342; border-color:#44365b; }
+.chat-row-body { flex:1; min-width:0; display:grid; gap:2px; }
+.chat-row-top { display:flex; align-items:baseline; justify-content:space-between; gap:8px; }
+.chat-row-top strong { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:.9rem; }
+.chat-row-top time { flex:none; color:#928ba3; font-size:.68rem; }
+.chat-row-preview { color:#aaa3b7; font-size:.78rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.unread-dot { width:8px; height:8px; border-radius:50%; background:#a78bfa; flex:none; }
+.sidebar-empty { color:var(--muted); font-size:.85rem; padding:16px 10px; text-align:center; }
+.app-chat { min-width:0; }
+.app-chat .messages { padding:12px 18px 14px; }
+.app-chat .chat-top { background:#17151e; }
+.app-chat #back { display:none; }
+.details-pane { flex:0 0 292px; min-width:0; overflow:auto; border-left:1px solid var(--line); background:#15131c; padding:16px; }
+.details-head { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:14px; }
+.details-head h2 { font-size:1.1rem; }
+.details-identity { display:grid; justify-items:center; text-align:center; gap:6px; padding:8px 0 16px; }
+.details-identity .avatar { width:72px; height:72px; font-size:1.7rem; }
+.details-actions { display:grid; gap:7px; margin-top:14px; }
+.details-meta { color:var(--muted); font-size:.8rem; text-align:center; overflow-wrap:anywhere; }
+.workspace.panel-open .details-pane { display:none; }
+.workspace.panel-open .app-sidebar { display:none; }
+.owner-pane { flex:0 0 min(440px,52%); }
+.notif-drawer { position:fixed; z-index:6; top:0; right:0; bottom:0; width:min(360px,100%); overflow:auto; padding:16px; background:#17151e; border-left:1px solid #36313f; box-shadow:-18px 0 50px #0008; }
+.drawer-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+.drawer-head h2 { font-size:1.2rem; }
+.notif-drawer .quiet { margin-bottom:12px; }
+@media (max-width:1180px) { .details-pane { display:none; } }
+@media (max-width:760px) {
+  .app-sidebar { flex:1 1 100%; width:100%; border-right:0; }
+  .app-chat { display:none; }
+  .workspace.showing-chat .app-sidebar { display:none; }
+  .workspace.showing-chat .app-chat { display:flex; }
+  .app-chat #back { display:grid; }
+  .app-chat .messages { padding:10px 12px 12px; }
+  .notif-drawer { width:100%; }
+}

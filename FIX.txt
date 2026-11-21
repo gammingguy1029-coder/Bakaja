@@ -1,22 +1,68 @@
 SHADOWBLOG — DEPLOYMENT AND TROUBLESHOOTING
 
 Project layout
-  server.js
+  server.js                 entire backend (storage adapters, REST API, boot)
   package.json
-  public/index.html
+  public/index.html         blog markup only
+  public/login.html         standalone sign-in page (/login)
+  public/app.html           WhatsApp-style chat app (/app)
+  public/css/*.css          base, blog, chat, social, login, app styles
+  public/js/*.js            core, blog, chat, admin, social, gifs, app, login, shell
   render.yaml
   FIX.txt
 
 Run locally
   Install Node 18 or newer, open a terminal in this folder, and run:
+    $env:ADMIN_PASSWORD = 'your-strong-password'
     npm install
     npm start
+  ADMIN_PASSWORD is required — without it the app prints a clear error and
+  exits immediately. It is the password for the owner account "rube" (max
+  72 UTF-8 bytes); no random password is ever generated or printed. Change it
+  and restart to reset the owner password.
   Open http://localhost:3000. Without DATABASE_URL you will see a warning
   and the app will run in memory. Accounts, comments, room codes, sessions,
   and messages are all lost on restart in this mode.
 
+Sign-in and chat app
+  Visit /login to sign in or create an account. A successful sign-in opens
+  /app, a WhatsApp-style layout with a chat list, Friends/Rooms tabs, a
+  conversation pane, a details pane, and a notifications drawer. /app redirects
+  to /login?next=/app when you are signed out. The blog's comment-box commands
+  (/join, /rooms, /admin, /app) still work as before. Typing /app in any post's
+  comment box opens the chat app; signed-out users go to /login?next=/app.
+
+Social features and GIFs
+  Logged-in users can search other users by username, send friend requests,
+  and accept or decline incoming requests. Accepting creates a private DM
+  room that appears in both users' room lists. Removing a friend deletes the
+  DM room and its message history. Reactions (👍 ❤️ 😂 🎉 👀 🔥) and
+  notification badges/toasts are available in the private chat.
+
+  GIF search uses the Giphy API through a server-side proxy. Set
+  GIPHY_API_KEY to enable it; the key never reaches the browser. With no key,
+  /api/gifs/config reports configured:false and the GIF button is hidden —
+  every other feature still works. Get a free key from the Giphy developer
+  portal and add it as an environment variable (the Render Blueprint declares
+  it as sync:false). Search results are cached in memory for 5 minutes and
+  only https media.giphy.com URLs are accepted.
+
+Pre-deploy checklist
+  [ ] ADMIN_PASSWORD is set in the deployment environment (required; the app
+      exits immediately without it). Never commit it or a .env file.
+  [ ] GIPHY_API_KEY is set only if you want the GIF picker; otherwise leave it
+      unset — the button hides itself automatically.
+  [ ] DATABASE_URL comes from the Render database (internal URL); local runs
+      without it use memory mode and lose data on restart.
+  [ ] render.yaml buildCommand = npm install, startCommand = npm start,
+      healthCheckPath = /health, web service and database in the same region.
+  [ ] npm start works locally with the same env vars (see Run locally).
+  [ ] No test scripts, screenshots, dumps, or .env files are in the repo.
+      `.md` docs (AGENTS.md, README.md) and FIX.txt are kept.
+
 Deploy with a Render Blueprint
-  1. Push the project, including public/index.html, to your Git repository.
+  1. Push the project, including public/index.html and public/css + public/js,
+     to your Git repository.
   2. In the Render Dashboard, choose New > Blueprint and select the repo
      and branch containing render.yaml.
   3. When asked for ADMIN_PASSWORD, enter a strong password and keep it in
@@ -41,13 +87,12 @@ Deploy manually
      to production. Deploy the service.
 
 Use the private chat
-  Type /admin into any blog comment field and submit. Log in as rube.
-  The Admin Panel opens with Admin Chat. On mobile, tap Back to chat
-  to see the chat pane. If you left ADMIN_PASSWORD unset on first run,
-  the generated password appears once in the service's logs. Command
-  words and codes are case-insensitive. Share a room code privately; a
-  friend types /join CODE in a comment box, then registers or logs in.
-  /rooms lists your previously joined, active rooms. /logout signs out.
+  Type /admin into any blog comment field and submit. Log in as rube with
+  the ADMIN_PASSWORD you set. The Admin Panel opens with Admin Chat. On
+  mobile, tap Back to chat to see the chat pane. Command words and codes are
+  case-insensitive. Share a room code privately; a friend types /join CODE in
+  a comment box, then registers or logs in. /rooms lists your previously
+  joined, active rooms. /logout signs out. /app opens this app from the blog.
 
 ECONNREFUSED, connection timeout, or unexpected MEMORY_NO_DB
   DATABASE_URL is missing, wrong, or pointing at an unreachable database.

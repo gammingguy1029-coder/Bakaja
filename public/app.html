@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content">
+<meta name="theme-color" content="#111015">
+<title>Chats — ShadowBlog</title>
+<link rel="stylesheet" href="/css/base.css">
+<link rel="stylesheet" href="/css/chat.css">
+<link rel="stylesheet" href="/css/social.css">
+<link rel="stylesheet" href="/css/app.css">
+</head>
+<body class="app-page">
+<div id="blog" hidden></div>
+<section id="private" class="private-screen app-screen" aria-label="Chats" hidden>
+  <div class="workspace" id="workspace">
+    <aside class="inbox app-sidebar" aria-label="Conversations">
+      <div class="sidebar-head">
+        <div class="sidebar-me">
+          <span class="avatar" id="sidebar-avatar" aria-hidden="true">?</span>
+          <span class="sidebar-identity"><strong id="sidebar-name">…</strong><small id="sidebar-role">Private space</small></span>
+        </div>
+        <button type="button" class="quiet icon-button" id="app-notifications" aria-label="Notifications" title="Notifications"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><span class="count-badge" id="notif-badge" hidden>0</span></button>
+        <button type="button" class="quiet icon-button" id="sign-out" aria-label="Sign out" title="Sign out"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 5H5v14h5M14 8l4 4-4 4M18 12H9"/></svg></button>
+      </div>
+      <div class="sidebar-tools">
+        <button type="button" class="quiet" id="new-chat">＋ New chat</button>
+        <span class="count-badge" id="friend-badge" hidden>0</span>
+      </div>
+      <div class="tabs app-tabs" role="tablist" aria-label="Sections">
+        <button type="button" class="tab" data-app-tab="chats" role="tab" aria-selected="true">Chats</button>
+        <button type="button" class="tab" data-app-tab="friends" role="tab" aria-selected="false">Friends <span class="count-badge inline-badge" id="chat-friend-badge" hidden>0</span></button>
+        <button type="button" class="tab" data-app-tab="rooms" role="tab" aria-selected="false">Rooms</button>
+      </div>
+      <div class="sidebar-body">
+        <div class="app-tab-panel" id="tab-chats"><ul class="chat-list" id="app-chat-list"></ul></div>
+        <div class="app-tab-panel" id="tab-friends" hidden>
+          <form class="inline" id="app-friend-search-form" novalidate>
+            <label for="app-friend-search" class="sr">Search username</label><input id="app-friend-search" placeholder="Find by username" maxlength="20" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="search">
+            <button class="primary">Find</button>
+          </form>
+          <p id="app-friend-status" class="status" role="status"></p>
+          <p class="inbox-label">Your friends</p><ul class="social-list" id="app-friends-list"></ul>
+          <p class="inbox-label">Incoming requests</p><ul class="social-list" id="app-incoming"></ul>
+          <p class="inbox-label">Outgoing requests</p><ul class="social-list" id="app-outgoing"></ul>
+        </div>
+        <div class="app-tab-panel" id="tab-rooms" hidden>
+          <form class="inline" id="app-room-join" novalidate>
+            <label for="app-room-code" class="sr">Room code</label><input id="app-room-code" placeholder="Join with code" maxlength="12" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="send">
+            <button class="primary">Join</button>
+          </form>
+          <p id="app-room-status" class="status" role="status"></p>
+          <p class="inbox-label">Your rooms</p><ul class="social-list" id="app-rooms-list"></ul>
+        </div>
+      </div>
+      <ul id="inbox-rooms" hidden></ul>
+      <div id="inbox-account" hidden></div>
+    </aside>
+    <div class="chat app-chat" id="chat">
+      <header class="chat-top">
+        <button type="button" id="back" class="quiet icon-button" aria-label="Back to chats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>
+        <div class="chat-heading"><span class="avatar" id="room-avatar" aria-hidden="true">#</span><div><h1 id="chat-title">Select a chat</h1><p class="chat-context" id="chat-context">Private room</p></div></div>
+        <div class="chat-tools">
+          <button type="button" id="chat-rooms" class="quiet icon-button" aria-label="Rooms" title="Rooms"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v14H4zM4 9h16M9 9v10"/></svg></button>
+          <button type="button" id="chat-friends" class="quiet icon-button" aria-label="Friends" title="Friends"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M2.8 20c.4-3.3 3-5.2 6.2-5.2s5.8 1.9 6.2 5.2M16 5.3a3.2 3.2 0 0 1 0 5.5M18.4 14.9c2 .6 3.3 2.4 3.6 5.1"/></svg></button>
+          <button type="button" id="show-panel" class="quiet icon-button" aria-label="Admin Panel" title="Admin Panel" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 6 5 4 4-6 4 6 5-4-2 11H5L3 6zm3 14h12"/></svg></button>
+          <button type="button" id="my-profile" class="quiet icon-button" aria-label="Your profile" title="Your profile"></button>
+        </div>
+      </header>
+      <p id="chat-status" class="status" role="status"></p>
+      <div class="messages" id="messages" role="log" aria-label="Messages" tabindex="0"><div class="day-divider" id="day-divider" hidden><span>Today</span></div></div>
+      <div class="gif-preview" id="gif-preview" hidden></div>
+      <form class="inline composer" id="chat-form">
+        <button type="button" id="gif-open" class="quiet icon-button" aria-label="Choose a GIF" title="Choose a GIF" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3 9.5h18M8 5v4.5M16 5v4.5M10.5 13.5h3M10.5 16h3"/></svg></button>
+        <label class="sr" for="chat-input">Message</label><input id="chat-input" maxlength="1000" placeholder="Message…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="send">
+        <button class="primary send-button" aria-label="Send message" title="Send message"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 12 16-8-6 16-2.6-6.4L4 12Z"/><path d="m11.4 13.6 8.6-9.6"/></svg></button>
+      </form>
+    </div>
+    <aside class="details-pane" id="details-pane" aria-label="Chat details">
+      <div class="details-head"><h2>Details</h2><button type="button" class="quiet" id="close-details" aria-label="Close details">×</button></div>
+      <div id="details-content"><p class="inbox-note">Select a chat to see details.</p></div>
+    </aside>
+    <aside class="owner-pane" id="owner-pane" aria-labelledby="panel-title" hidden>
+      <div class="pane-head"><h2 id="panel-title">Admin Panel</h2><button type="button" id="close-panel" class="quiet">Back to chat</button></div>
+      <p id="owner-status" class="status" role="status"></p>
+      <h3>Create Room</h3>
+      <form class="stack" id="create-room">
+        <div class="inline admin-form"><label class="sr" for="room-name">Room name</label><input id="room-name" maxlength="80" required placeholder="Room name" autocomplete="off" spellcheck="false"><button class="primary">Generate Code</button></div>
+        <label><input type="checkbox" id="owner-only"> Owner only</label>
+      </form>
+      <h3>Codes</h3>
+      <table class="code-table"><thead><tr><th scope="col">Code</th><th scope="col">Room Name</th><th scope="col">Status</th><th scope="col">Actions</th></tr></thead><tbody id="code-rows"></tbody></table>
+      <h3>Users</h3>
+      <table class="user-table"><thead><tr><th scope="col">Username</th><th scope="col">Role</th><th scope="col">Assign role</th></tr></thead><tbody id="user-rows"></tbody></table>
+      <h3>Roles</h3>
+      <form class="inline admin-form" id="create-role">
+        <label class="field">Role name<input id="role-name" maxlength="24" required autocomplete="off" spellcheck="false"></label>
+        <label class="field">Color<input id="role-color" type="color" value="#23543d"></label><button class="primary">Create role</button>
+      </form>
+      <div id="role-list" class="role-list"></div>
+    </aside>
+  </div>
+</section>
+<div class="notif-drawer" id="notif-drawer" hidden>
+  <div class="drawer-head"><h2>Notifications</h2><button type="button" class="quiet" id="close-notif" aria-label="Close notifications">×</button></div>
+  <button type="button" class="quiet" id="notif-read">Mark all as read</button>
+  <ul class="social-list" id="notifications-list"></ul>
+</div>
+<dialog class="private-dialog" id="auth-dialog" aria-labelledby="auth-title"><div class="dialog-head"><h2 id="auth-title">Login</h2><button type="button" class="quiet" data-close="auth-dialog" aria-label="Close">×</button></div><form id="auth-form" class="stack" novalidate><label class="field">Username<input id="login-user" name="username" maxlength="20" autocomplete="off"></label><label class="field">Password<input id="login-pass" name="password" type="password" autocomplete="off"></label><button class="primary" id="auth-submit">Login</button><button type="button" class="quiet" id="auth-toggle">Switch to Register</button></form><p id="auth-status" class="status error" role="status"></p></dialog>
+<dialog class="private-dialog" id="rooms-dialog" aria-labelledby="rooms-title"><div class="dialog-head"><h2 id="rooms-title">Your rooms</h2><button type="button" class="quiet" data-close="rooms-dialog" aria-label="Close">×</button></div><ul id="room-items" class="room-items"></ul><form id="room-join" class="inline" novalidate><label for="room-code" class="sr">Room code</label><input id="room-code" placeholder="Join with code" maxlength="12" autocomplete="off"><button class="primary">Join</button></form><p id="rooms-status" class="status" role="status"></p></dialog>
+<dialog class="private-dialog" id="profile-dialog" aria-labelledby="profile-title"><div class="dialog-head"><h2 id="profile-title">Profile</h2><button type="button" class="quiet" data-close="profile-dialog" aria-label="Close profile">×</button></div><div class="profile-identity" id="profile-identity"></div><p class="profile-banner" id="profile-banner"></p></dialog>
+<dialog class="private-dialog" id="friends-dialog" aria-labelledby="friends-title"><div class="dialog-head"><h2 id="friends-title">Friends</h2><button type="button" class="quiet" data-close="friends-dialog" aria-label="Close">×</button></div><div class="tabs"><button type="button" class="quiet tab" data-tab="friends" role="tab" aria-selected="true">Friends</button><button type="button" class="quiet tab" data-tab="requests" role="tab" aria-selected="false">Requests</button><button type="button" class="quiet tab" data-tab="add" role="tab" aria-selected="false">Add friend</button></div><div class="tab-panel" id="tab-friends"><p class="inbox-note" id="friends-empty">Loading…</p><ul class="social-list" id="friends-list"></ul></div><div class="tab-panel" id="tab-requests" hidden><p class="inbox-label">Incoming</p><ul class="social-list" id="incoming-list"></ul><p class="inbox-label">Outgoing</p><ul class="social-list" id="outgoing-list"></ul></div><div class="tab-panel" id="tab-add" hidden><form class="inline" id="friend-search-form" novalidate><label for="friend-search" class="sr">Search by username</label><input id="friend-search" placeholder="Search username" maxlength="20" autocomplete="off"><button class="primary">Search</button></form><p id="friend-search-status" class="status" role="status"></p><ul class="social-list" id="friend-results"></ul></div></dialog>
+<dialog class="private-dialog" id="gifs-dialog" aria-labelledby="gifs-title"><div class="dialog-head"><h2 id="gifs-title">Choose a GIF</h2><button type="button" class="quiet" data-close="gifs-dialog" aria-label="Close">×</button></div><form class="inline" id="gif-search-form" novalidate><label for="gif-search" class="sr">Search GIFs</label><input id="gif-search" placeholder="Search GIFs" maxlength="50" autocomplete="off"><button class="primary">Search</button></form><p id="gif-search-status" class="status" role="status"></p><div class="gif-grid" id="gif-grid"></div><div class="gif-selected" id="gif-selected" hidden><img id="gif-selected-img" alt="Selected GIF preview"><button type="button" class="primary" id="gif-use">Use this GIF</button></div></dialog>
+<dialog class="private-dialog" id="notifications-dialog" aria-labelledby="notifications-title"><div class="dialog-head"><h2 id="notifications-title">Notifications</h2><button type="button" class="quiet" data-close="notifications-dialog" aria-label="Close">×</button></div><ul class="social-list" id="notifications-list-dummy"></ul></dialog>
+<div class="banner" id="wake" role="status" hidden>Waking up the server, please wait...</div>
+<div class="sr" id="announcement" role="status"></div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<script defer src="/js/core.js"></script>
+<script defer src="/js/chat.js"></script>
+<script defer src="/js/admin.js"></script>
+<script defer src="/js/social.js"></script>
+<script defer src="/js/gifs.js"></script>
+<script defer src="/js/shell.js"></script>
+</body>
+</html>

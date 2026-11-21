@@ -1,0 +1,20 @@
+/* ShadowBlog blog styles */
+  .hero { margin-top:34px; min-height:315px; display:grid; grid-template-columns:minmax(0,1.3fr) minmax(0,.8fr); align-items:center; gap:20px; padding:clamp(24px,5vw,66px); border:1px solid #d8e1d3; border-radius:24px; background:linear-gradient(115deg,#ecf1e7,#e4ece0); }
+  .eyebrow { color:var(--green); font-size:.735rem; font-weight:780; letter-spacing:.15em; text-transform:uppercase; }
+  .hero h1 { font:500 clamp(2.45rem,5.6vw,4.8rem)/1.04 Georgia,serif; letter-spacing:-.05em; margin:13px 0 15px; }
+  .hero p:last-child { max-width:48ch; color:#43564a; }
+  .hero-art { width:100%; max-width:340px; justify-self:end; height:auto; }
+  .section-head { margin:37px 0 17px; display:flex; gap:10px 20px; align-items:end; justify-content:space-between; flex-wrap:wrap; }
+  .section-head h2 { font:500 clamp(1.9rem,3vw,2.55rem)/1.1 Georgia,serif; letter-spacing:-.035em; margin-top:5px; }
+  .count { color:var(--muted); font-size:.875rem; }
+  .posts { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
+  .card { background:var(--white); border:1px solid var(--line); border-radius:17px; padding:clamp(17px,2.25vw,27px); display:flex; flex-direction:column; gap:10px; min-width:0; }
+  .post-meta { display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:.78rem; color:var(--muted); }
+  .tag { padding:4px 10px; background:var(--soft); color:var(--green); border-radius:999px; font-weight:680; }
+  .card h3 { font:500 clamp(1.45rem,2.5vw,1.85rem)/1.17 Georgia,serif; letter-spacing:-.025em; }
+  .card > p { color:#46534b; margin-bottom:3px; }
+  .comment-area { margin-top:auto; padding-top:4px; }
+  .comment-area summary { cursor:pointer; min-height:44px; line-height:44px; color:var(--green); font-weight:650; font-size:.9rem; }
+  .comments { display:grid; gap:5px; max-height:240px; overflow:auto; margin-bottom:8px; font-size:.91rem; }
+  .comment { background:#f6f7f3; padding:8px 10px; border-radius:8px; overflow-wrap:anywhere; }
+  .comment time { color:var(--muted); font-size:.8rem; margin-left:8px; }

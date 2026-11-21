@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content">
+<meta name="theme-color" content="#111015">
+<title>Sign in — ShadowBlog</title>
+<link rel="stylesheet" href="/css/base.css">
+<link rel="stylesheet" href="/css/chat.css">
+<link rel="stylesheet" href="/css/login.css">
+</head>
+<body class="auth-page">
+<main class="auth-shell">
+  <section class="auth-brand" aria-label="About ShadowBlog">
+    <a class="auth-logo" href="/"><span class="mark" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6c-3-2-6-2-9-1v14c3-1 6-1 9 1 3-2 6-2 9-1V5c-3-1-6-1-9 1zm0 0v14M6 9l3 1m6 0 3-1"/></svg></span>ShadowBlog</a>
+    <div class="auth-brand-copy">
+      <p class="dm-kicker">Private by design</p>
+      <h1>Your study circle,<br>all in one place.</h1>
+      <p>Chat with friends, share GIFs, and keep every conversation in a quiet corner of the internet.</p>
+    </div>
+    <div class="auth-art" aria-hidden="true">
+      <span class="art-bubble art-left">Hey! Ready to revise? <small>14:26</small></span>
+      <span class="art-bubble art-right">Always. 👋 <small>14:27</small></span>
+      <span class="art-dot art-dot-1"></span><span class="art-dot art-dot-2"></span>
+    </div>
+    <p class="auth-footnote">A small study blog with a private side.</p>
+  </section>
+  <section class="auth-panel" aria-labelledby="auth-heading">
+    <div class="auth-card">
+      <h2 id="auth-heading">Welcome back</h2>
+      <p class="auth-sub" id="auth-sub">Sign in to continue to your chats.</p>
+      <form id="login-form" class="stack" novalidate>
+        <label class="field">Username<input id="login-user" name="username" maxlength="20" autocomplete="username" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="send" required></label>
+        <label class="field">Password<input id="login-pass" name="password" type="password" autocomplete="current-password" spellcheck="false" enterkeyhint="send" required></label>
+        <p id="login-error" class="status error" role="alert"></p>
+        <button class="primary" id="login-submit" type="submit">Sign in</button>
+      </form>
+      <p class="auth-switch">New here? <button type="button" class="quiet" id="auth-mode-toggle">Create an account</button></p>
+      <a class="auth-back" href="/">← Back to the blog</a>
+    </div>
+  </section>
+</main>
+<div class="banner" id="wake" role="status" hidden>Waking up the server, please wait...</div>
+<div class="sr" id="announcement" role="status"></div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<script defer src="/js/core.js"></script>
+<script defer src="/js/login.js"></script>
+</body>
+</html>
