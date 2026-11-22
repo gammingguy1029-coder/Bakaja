@@ -271,10 +271,10 @@ const postgres = {
   pendingCount: async id => (await one(pool,
     "SELECT count(*)::int AS count FROM friendships WHERE (user_a = $1 OR user_b = $1) AND status = 'pending'", id)).count,
   sendFriendRequest: (fromId, toId) => one(pool, `INSERT INTO friendships(user_a, user_b, requester_id, status)
-    VALUES (LEAST($1,$2), GREATEST($1,$2), $1, 'pending') ON CONFLICT (user_a, user_b) DO NOTHING RETURNING *`, fromId, toId),
+    VALUES (LEAST($1::int,$2::int), GREATEST($1::int,$2::int), $1, 'pending') ON CONFLICT (user_a, user_b) DO NOTHING RETURNING *`, fromId, toId),
   acceptFriendRequest: (viewerId, friendId, label) => transaction(async db => {
     const row = await one(db, `UPDATE friendships SET status = 'accepted'
-      WHERE user_a = LEAST($1,$2) AND user_b = GREATEST($1,$2) AND requester_id <> $1 AND status = 'pending' RETURNING *`, viewerId, friendId);
+      WHERE user_a = LEAST($1::int,$2::int) AND user_b = GREATEST($1::int,$2::int) AND requester_id <> $1 AND status = 'pending' RETURNING *`, viewerId, friendId);
     if (!row || row.dm_code) return row;
     const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let code = null;
@@ -289,12 +289,12 @@ const postgres = {
     return { ...row, dm_code: code };
   }),
   declineFriendRequest: (viewerId, friendId) => one(pool, `DELETE FROM friendships
-    WHERE user_a = LEAST($1,$2) AND user_b = GREATEST($1,$2) AND requester_id <> $1 AND status = 'pending' RETURNING *`, viewerId, friendId),
+    WHERE user_a = LEAST($1::int,$2::int) AND user_b = GREATEST($1::int,$2::int) AND requester_id <> $1 AND status = 'pending' RETURNING *`, viewerId, friendId),
   cancelFriendRequest: (viewerId, friendId) => one(pool, `DELETE FROM friendships
-    WHERE user_a = LEAST($1,$2) AND user_b = GREATEST($1,$2) AND requester_id = $1 AND status = 'pending' RETURNING *`, viewerId, friendId),
+    WHERE user_a = LEAST($1::int,$2::int) AND user_b = GREATEST($1::int,$2::int) AND requester_id = $1 AND status = 'pending' RETURNING *`, viewerId, friendId),
   removeFriend: (viewerId, friendId) => transaction(async db => {
     const row = await one(db, `DELETE FROM friendships
-      WHERE user_a = LEAST($1,$2) AND user_b = GREATEST($1,$2) AND status = 'accepted' RETURNING *`, viewerId, friendId);
+      WHERE user_a = LEAST($1::int,$2::int) AND user_b = GREATEST($1::int,$2::int) AND status = 'accepted' RETURNING *`, viewerId, friendId);
     if (row?.dm_code) await db.query('DELETE FROM codes WHERE code = $1', [row.dm_code]);
     return row;
   }),
