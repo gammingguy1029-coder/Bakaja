@@ -98,6 +98,8 @@ async function friendAction(control, id, action) {
     const data = await api(`/friends/${id}/${action}`,{ method:'POST',body:{},showWake:true });
     if (action === 'accept' && data.room) toast(`You are now friends with @${data.friend.username}. Your direct chat is ready.`);
     else toast(action === 'decline' ? 'Request declined.' : 'Request cancelled.');
+    // /app renders friends in its own panel; the blog uses the dialog.
+    if (typeof loadFriendsPanel === 'function') void loadFriendsPanel();
     void loadFriends(action === 'accept' ? 'friends' : 'requests');
     void refreshBadges();
   } catch (error) { toast(error.message,true); }
@@ -108,7 +110,11 @@ async function unfriend(control, id, username) {
   control.disabled = true;
   try {
     await api(`/friends/${id}`,{ method:'DELETE',showWake:true });
-    toast('Friend removed.'); void loadFriends('friends'); void refreshBadges();
+    toast('Friend removed.');
+    if (typeof loadFriendsPanel === 'function') void loadFriendsPanel();
+    void loadFriends('friends');
+    if (typeof loadChats === 'function') void loadChats();
+    void refreshBadges();
   } catch (error) { toast(error.message,true); }
   finally { control.disabled = false; }
 }

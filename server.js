@@ -847,9 +847,23 @@ api.post('/friends/request', wrap(async (req, res) => {
   const target = await store.user(username);
   if (!target) throw new HttpError(404, 'No user with that username.');
   if (await store.pendingCount(req.user.id) >= 20) throw new HttpError(429, 'You have too many pending requests.');
-  const request = await store.sendFriendRequest(req.user.id, target.id);
+  let request;
+  try {
+    request = await store.sendFriendRequest(req.user.id, target.id);
+  } catch (error) {
+    // A duplicate pair can surface as a driver unique-violation instead of a
+    // falsy return value (e.g. a stale/conflicting schema). Keep it a clean 409.
+    if (error.code === '23505') throw new HttpError(409, 'A request or friendship already exists.');
+    throw error;
+  }
   if (!request) throw new HttpError(409, 'A request or friendship already exists.');
-  await store.notify(target.id, 'friend_request', req.user.id, { username: req.user.username });
+  // The friendship is already saved. A notification failure must not turn a
+  // successful request into a generic 500 for the sender.
+  try {
+    await store.notify(target.id, 'friend_request', req.user.id, { username: req.user.username });
+  } catch (error) {
+    logError('Friend request notification', error);
+  }
   res.status(201).json({ request: { id: target.id, username: target.username, requester_id: request.requester_id } });
 }, true));
 api.get('/friends', wrap(async (req, res) => {

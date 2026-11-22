@@ -1,7 +1,7 @@
 'use strict';
 // Controller for the WhatsApp-style /app page. Reuses core/chat/social/gifs modules.
 const workspace = $('workspace');
-let currentTab = 'chats', chatRequestId = 0, friendsCache = [];
+let currentTab = 'chats', chatRequestId = 0, friendsCache = [], appFriendSearchId = 0;
 
 function wire(id, event, fn) { const node = $(id); if (node) node.addEventListener(event,fn); }
 function loginRedirect() { location.replace('/login?next=/app'); }
@@ -119,20 +119,31 @@ async function appFriendSearch(event) {
   event.preventDefault();
   const query = $('app-friend-search').value.trim();
   if (query.length < 2) { status('app-friend-status','Enter at least 2 characters.',true); return; }
+  const request = ++appFriendSearchId;
   status('app-friend-status','Searching…');
   try {
     const { users } = await api(`/users/search?q=${encodeURIComponent(query)}`);
+    if (request !== appFriendSearchId) return;
     status('app-friend-status',users.length ? '' : 'No users found.');
     const results = $('app-friends-list');
+    // Remove only previous search rows; keep the real friends list intact.
+    for (const stale of results.querySelectorAll('[data-search-result]')) stale.remove();
     for (const person of users) {
       if (dataHasFriend(person)) continue;
-      results.append(friendRow(person,[button('Add',async control => {
-        control.disabled = true;
-        try { await api('/friends/request',{ method:'POST',body:{ username:person.username },showWake:true }); toast(`Request sent to @${person.username}.`); control.textContent='Sent'; void loadFriendsPanel(); }
-        catch (error) { toast(error.message,true); control.disabled = false; }
-      },'primary')]));
+      const add = button('Add',async () => {
+        add.disabled = true;
+        try {
+          await api('/friends/request',{ method:'POST',body:{ username:person.username },showWake:true });
+          toast(`Request sent to @${person.username}.`);
+          add.textContent = 'Sent';
+          void loadFriendsPanel();
+        } catch (error) { toast(error.message,true); add.disabled = false; }
+      },'primary');
+      const row = friendRow(person,[add]);
+      row.dataset.searchResult = '1';
+      results.append(row);
     }
-  } catch (error) { status('app-friend-status',error.message,true); }
+  } catch (error) { if (request === appFriendSearchId) status('app-friend-status',error.message,true); }
 }
 function dataHasFriend(person) { return friendsCache.some(friend => friend.username === person.username); }
 
